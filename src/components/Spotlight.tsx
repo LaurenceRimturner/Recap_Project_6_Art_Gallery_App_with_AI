@@ -8,8 +8,10 @@ type SpotlightProps = {
 };
 
 export default function Spotlight({ pieces }: SpotlightProps) {
-  const [piece] = useState(() => pickRandom(pieces));
+  const [picked, setPicked] = useState(() => pickRandom(pieces));
+  const piece = picked ?? pickRandom(pieces);
 
+  if (piece && !picked) setPicked(piece);
   if (!piece) return null;
 
   return (

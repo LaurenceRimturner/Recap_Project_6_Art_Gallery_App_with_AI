@@ -73,6 +73,30 @@ test("keeps the same piece when the pieces prop changes", () => {
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
 });
 
+test("picks a piece once data arrives after an empty first render", () => {
+  const random = vi
+    .spyOn(crypto, "getRandomValues")
+    .mockImplementation(<T extends ArrayBufferView>(array: T) => {
+      (array as unknown as Uint32Array)[0] = 0;
+      return array;
+    });
+  const { rerender } = render(<Spotlight pieces={[]} />);
+
+  rerender(<Spotlight pieces={pieces} />);
+  expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
+
+  random.mockImplementation(<T extends ArrayBufferView>(array: T) => {
+    (array as unknown as Uint32Array)[0] = 2 ** 32 - 1;
+    return array;
+  });
+  rerender(<Spotlight pieces={pieces} />);
+
+  expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: pieces[1].name })
+  ).not.toBeInTheDocument();
+});
+
 test("renders nothing for an empty array", () => {
   const { container } = render(<Spotlight pieces={[]} />);
 
