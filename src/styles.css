@@ -17,7 +17,7 @@
   --margin: clamp(1rem, 4vw, 3rem);
   --nav-width: 10rem;
 
-  --font: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --font: "Inter", system-ui, sans-serif;
 }
 
 *,
