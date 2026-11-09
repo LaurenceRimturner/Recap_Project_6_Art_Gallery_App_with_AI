@@ -14,14 +14,14 @@ Add a "Favorites" nav link and a `/favorites` route that lists only the favorite
 
 ## Tests per acceptance criterion
 
-| Criterion | Test (file: name) | Asserts |
-| --- | --- | --- |
-| Nav link labeled "Favorites" | `Navigation.test.tsx`: shows a Favorites link | link "Favorites" has `href="/favorites"` |
-| Nav link highlights on its route | `Navigation.test.tsx`: highlights the Favorites link on /favorites | link has class `active` |
-| Clicking "Favorites" shows `/favorites` | `App.test.tsx`: shows the favorites page after clicking Favorites | click link, page content for favorites is shown |
-| Only favorites are listed | `App.test.tsx`: lists only favorite art pieces on /favorites | favorite one piece in the gallery, navigate to Favorites, only that piece's image is present |
-| Image, title and artist shown | `App.test.tsx`: shows image, title and artist of favorites | image by name and caption with title and artist are present |
-| Active favorite button | `App.test.tsx`: shows an active favorite button for each favorite | button "Remove from favorites" with `aria-pressed="true"` |
+| Criterion                               | Test (file: name)                                                  | Asserts                                                                                      |
+| --------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| Nav link labeled "Favorites"            | `Navigation.test.tsx`: shows a Favorites link                      | link "Favorites" has `href="/favorites"`                                                     |
+| Nav link highlights on its route        | `Navigation.test.tsx`: highlights the Favorites link on /favorites | link has class `active`                                                                      |
+| Clicking "Favorites" shows `/favorites` | `App.test.tsx`: shows the favorites page after clicking Favorites  | click link, page content for favorites is shown                                              |
+| Only favorites are listed               | `App.test.tsx`: lists only favorite art pieces on /favorites       | favorite one piece in the gallery, navigate to Favorites, only that piece's image is present |
+| Image, title and artist shown           | `App.test.tsx`: shows image, title and artist of favorites         | image by name and caption with title and artist are present                                  |
+| Active favorite button                  | `App.test.tsx`: shows an active favorite button for each favorite  | button "Remove from favorites" with `aria-pressed="true"`                                    |
 
 ## Files that change
 
