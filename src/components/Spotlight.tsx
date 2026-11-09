@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 
 import { pickRandom } from "../pickRandom";
 import type { ArtPiece } from "../types";
@@ -15,11 +16,13 @@ export default function Spotlight({ pieces }: SpotlightProps) {
   if (!piece) return null;
 
   return (
-    <figure className="art-piece spotlight">
-      <img src={piece.imageSource} alt={piece.name} />
-      <figcaption>
-        &quot;{piece.name}&quot; by {piece.artist}
-      </figcaption>
-    </figure>
+    <Link to={`/art-pieces/${piece.slug}`}>
+      <figure className="art-piece spotlight">
+        <img src={piece.imageSource} alt={piece.name} />
+        <figcaption>
+          &quot;{piece.name}&quot; by {piece.artist}
+        </figcaption>
+      </figure>
+    </Link>
   );
 }
