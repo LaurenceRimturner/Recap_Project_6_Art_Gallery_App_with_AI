@@ -52,12 +52,44 @@ test("shows the list on /art-pieces", async () => {
 test("keeps the heading and shows no loading message on other routes", () => {
   vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {})));
 
-  renderApp("/");
+  renderApp("/unknown");
 
   expect(
     screen.getByRole("heading", { name: "Art Gallery" })
   ).toBeInTheDocument();
   expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+});
+
+test("shows the spotlight on /", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => [pieces[0]] })
+  );
+
+  renderApp("/");
+
+  expect(
+    await screen.findByRole("img", { name: pieces[0].name })
+  ).toHaveAttribute("src", pieces[0].imageSource);
+  expect(screen.getByText(/Ad Reinhardt/)).toBeInTheDocument();
+});
+
+test("shows a loading message on /", () => {
+  vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {})));
+
+  renderApp("/");
+
+  expect(screen.getByText("Loading...")).toBeInTheDocument();
+});
+
+test("shows an error message on /", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
+
+  renderApp("/");
+
+  expect(
+    await screen.findByText("Failed to load art pieces.")
+  ).toBeInTheDocument();
 });
 
 test("does not show the list on other routes", async () => {
