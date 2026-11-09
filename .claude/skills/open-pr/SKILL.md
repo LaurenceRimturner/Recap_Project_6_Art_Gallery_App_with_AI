@@ -20,9 +20,11 @@ Argument: `$ARGUMENTS` is the issue number `<n>`. If missing, ask the user.
    - **Summary**: what changed and why.
    - **How I tested**: only the checks you actually ran in this session, with their real results.
    - **Acceptance criteria**: the issue's criteria as a checklist (`gh issue view <n>`). Tick (`[x]`) only criteria you verified (e.g. by a passing test); leave others unticked.
-6. Show the user the PR URL.
+6. **Tick the issue**: read the issue body with `gh issue view <n> --json body -q .body`. Set `- [ ]` to `- [x]` only for acceptance criteria and tasks you verified in this session (passing test, check output, or file inspection). Write the result with `gh issue edit <n> --body-file <file>` (temp file in the scratchpad). Leave unverified items unticked and list them in your reply, each ticked item with its proof.
+7. Show the user the PR URL.
 
 ## Rules
 
 - Claim nothing you did not check. If something was skipped or failed, say so in the PR and in your reply.
+- Tick a box in the issue or the PR only with a concrete proof (test name, command output); state the proof in your reply.
 - If unsure about anything (title, scope, unticked criteria), ask the user first.
