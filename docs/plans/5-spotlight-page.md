@@ -13,21 +13,21 @@ The homepage `/` shows one randomly chosen art piece as a spotlight: its image a
 
 ## Tests per acceptance criterion
 
-| Criterion                       | Test (file: name)                                                                       | Asserts                                                                                    |
-| ------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| One art piece randomly selected | `src/pickRandom.test.ts`: returns an element of the array                               | with `Math.random` stubbed to 0, 0.5, 0.999 the result is the first / middle / last element |
-| (same, helper edge)             | `pickRandom.test.ts`: returns undefined for an empty array                              | `pickRandom([])` is `undefined`                                                            |
-| (same, picked once)             | `src/components/Spotlight.test.tsx`: keeps the same piece on re-render                  | after `rerender` with `Math.random` changed, the shown piece is unchanged                  |
-| Image displayed                 | `Spotlight.test.tsx`: shows the image                                                   | `getByRole("img", { name: <name> })` has `src` = `imageSource` (single-piece array)        |
-| Artist's name displayed         | `Spotlight.test.tsx`: shows the artist's name                                           | the artist text is in the document                                                         |
-| Available on `/`                | `src/App.test.tsx`: shows the spotlight on /                                            | with `MemoryRouter initialEntries={["/"]}` and mocked `fetch`, the image and artist appear |
-| Loading / error on `/`          | `App.test.tsx`: shows a loading message on / ; shows an error message on /              | "Loading..." before data; "Failed to load art pieces." on a failing fetch                  |
+| Criterion                       | Test (file: name)                                                          | Asserts                                                                                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| One art piece randomly selected | `src/pickRandom.test.ts`: returns an element of the array                  | with `crypto.getRandomValues` stubbed to 0, 0.5, 0.999, and the maximum value (2^32-1), the result is the first / middle / last element |
+| (same, helper edge)             | `pickRandom.test.ts`: returns undefined for an empty array                 | `pickRandom([])` is `undefined`                                                                                                         |
+| (same, picked once)             | `src/components/Spotlight.test.tsx`: keeps the same piece on re-render     | after `rerender` with `crypto.getRandomValues` changed, the shown piece is unchanged                                                    |
+| Image displayed                 | `Spotlight.test.tsx`: shows the image                                      | `getByRole("img", { name: <name> })` has `src` = `imageSource` (single-piece array)                                                     |
+| Artist's name displayed         | `Spotlight.test.tsx`: shows the artist's name                              | the artist text is in the document                                                                                                      |
+| Available on `/`                | `src/App.test.tsx`: shows the spotlight on /                               | with `MemoryRouter initialEntries={["/"]}` and mocked `fetch`, the image and artist appear                                              |
+| Loading / error on `/`          | `App.test.tsx`: shows a loading message on / ; shows an error message on / | "Loading..." before data; "Failed to load art pieces." on a failing fetch                                                               |
 
 SWR tests keep the fresh-cache `SWRConfig` wrapper.
 
 ## Files that change
 
-- `src/pickRandom.ts` (new): `pickRandom<T>(items: T[]): T | undefined` using `Math.floor(Math.random() * items.length)`.
+- `src/pickRandom.ts` (new): `pickRandom<T>(items: T[]): T | undefined` using `crypto.getRandomValues` (lint rule `sonarjs/pseudo-random` forbids `Math.random`).
 - `src/components/Spotlight.tsx` (new): props `{ pieces: ArtPiece[] }`; picks once via `useState(() => pickRandom(pieces))`; renders `<figure className="art-piece spotlight">` with `img` (alt = name) and `<figcaption>"name" by artist</figcaption>`; renders nothing for an empty array.
 - `src/App.tsx` (modify): extract the loading/error handling into a shared helper used by both routes; add `<Route path="/" ...>` rendering `<Spotlight pieces={data} />`.
 - Test files next to each of the above; update `src/App.test.tsx`.
