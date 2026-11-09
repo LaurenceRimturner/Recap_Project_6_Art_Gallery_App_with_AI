@@ -72,6 +72,10 @@ nav a.active {
   margin: 0.25rem 0 0;
 }
 
+.spotlight figure {
+  margin: 0;
+}
+
 .spotlight img {
   height: 28rem;
 }
@@ -94,6 +98,10 @@ nav a.active {
 
 .favorite-button[aria-pressed="true"] {
   color: #d6336c;
+}
+
+.details {
+  position: relative;
 }
 
 .details img {
