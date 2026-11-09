@@ -236,9 +236,15 @@ nav a.active {
   margin-top: calc(var(--unit) * 4);
 }
 
+/* full width, or full height when the piece is taller than the viewport */
 .spotlight img {
-  aspect-ratio: 4 / 5;
+  width: 100%;
+  height: auto;
   max-height: 75vh;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: left top;
+  background: transparent;
 }
 
 @media (max-width: 900px) {
@@ -288,17 +294,38 @@ nav a.active {
   align-content: start;
 }
 
+/* back link, styled as a button with a 44px minimum hit area */
 .details > a {
+  display: inline-flex;
   grid-column: 1 / -1;
+  gap: var(--unit);
+  align-items: center;
+  justify-self: start;
+  min-height: calc(var(--unit) * 5.5);
   margin-bottom: calc(var(--unit) * 4);
+  padding: var(--unit) calc(var(--unit) * 3);
   font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  border: 2px solid var(--ink);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.details > a::before {
+  content: "←";
+  content: "←" / "";
 }
 
 .details > a:hover {
-  color: var(--accent);
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.details > a:focus-visible {
+  outline-offset: 4px;
 }
 
 .details img {
@@ -387,6 +414,30 @@ nav a.active {
   border: 1px solid var(--rule);
 }
 
+/* comments and form sit in the right-hand column, like the other details */
+.details > section:not(.color-palette),
+.details > .comment-form {
+  grid-column: 9 / -1;
+}
+
+@media (max-width: 900px) {
+  .details > section:not(.color-palette),
+  .details > .comment-form {
+    grid-column: 1 / -1;
+  }
+}
+
+.details > section:not(.color-palette) {
+  margin-top: calc(var(--unit) * 4);
+}
+
+.details > section:not(.color-palette) h3 {
+  padding-top: var(--unit);
+  border-top: 2px solid var(--ink);
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
 .comments {
   margin: calc(var(--unit) * 2) 0 0;
   padding: 0;
@@ -394,8 +445,18 @@ nav a.active {
 }
 
 .comments li {
+  display: grid;
+  gap: calc(var(--unit) / 2);
   padding: var(--unit) 0;
   border-bottom: 1px solid var(--rule);
+}
+
+/* beats the generic .details p rule: no extra rule line inside a comment */
+.comments li p {
+  grid-column: auto;
+  padding: 0;
+  border-top: 0;
+  overflow-wrap: anywhere;
 }
 
 .comments time {
@@ -405,7 +466,7 @@ nav a.active {
 .comment-form {
   display: grid;
   gap: calc(var(--unit) * 2);
-  max-width: 24rem;
+  margin-top: calc(var(--unit) * 2);
 }
 
 .comment-form input[type="text"],
