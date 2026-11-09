@@ -3,6 +3,7 @@ import { NavLink } from "react-router";
 const links = [
   { to: "/", label: "Spotlight", end: true },
   { to: "/art-pieces", label: "Gallery", end: false },
+  { to: "/favorites", label: "Favorites", end: false },
 ];
 
 export default function Navigation() {

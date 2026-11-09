@@ -358,3 +358,106 @@ test("shows the favorite status on the spotlight", async () => {
     screen.getByRole("button", { name: "Remove from favorites" })
   ).toHaveAttribute("aria-pressed", "true");
 });
+
+test("shows the favorites page after clicking Favorites", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  await screen.findByRole("list");
+
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  expect(await screen.findByRole("list")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Favorites" })).toHaveClass("active");
+  expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+  expect(screen.queryByText("Page not found")).not.toBeInTheDocument();
+});
+
+test("lists only favorite art pieces on /favorites", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  expect(
+    await screen.findByRole("img", { name: pieces[0].name })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: pieces[1].name })
+  ).not.toBeInTheDocument();
+  expect(screen.getAllByRole("listitem")).toHaveLength(1);
+});
+
+test("shows image, title and artist of favorites", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  expect(
+    await screen.findByRole("img", { name: pieces[0].name })
+  ).toHaveAttribute("src", pieces[0].imageSource);
+  expect(screen.getByText(/Orange Red and Green/)).toBeInTheDocument();
+  expect(screen.getByText(/Ad Reinhardt/)).toBeInTheDocument();
+});
+
+test("shows an active favorite button for each favorite", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  for (const button of await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  })) {
+    await userEvent.click(button);
+  }
+
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  const buttons = await screen.findAllByRole("button", {
+    name: "Remove from favorites",
+  });
+  expect(buttons).toHaveLength(pieces.length);
+  for (const button of buttons) {
+    expect(button).toHaveAttribute("aria-pressed", "true");
+  }
+});
+
+test("removes a piece from /favorites when it is unfavorited", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Remove from favorites" })
+  );
+
+  expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+  expect(
+    screen.queryByRole("img", { name: pieces[0].name })
+  ).not.toBeInTheDocument();
+});

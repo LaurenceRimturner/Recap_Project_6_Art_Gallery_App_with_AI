@@ -29,6 +29,15 @@ test("shows a Gallery link", () => {
   );
 });
 
+test("shows a Favorites link", () => {
+  renderNavigation();
+
+  expect(screen.getByRole("link", { name: "Favorites" })).toHaveAttribute(
+    "href",
+    "/favorites"
+  );
+});
+
 test("highlights the Spotlight link on /", () => {
   renderNavigation("/");
 
@@ -43,6 +52,15 @@ test("highlights the Gallery link on /art-pieces", () => {
 
   expect(screen.getByRole("link", { name: "Gallery" })).toHaveClass("active");
   expect(screen.getByRole("link", { name: "Spotlight" })).not.toHaveClass(
+    "active"
+  );
+});
+
+test("highlights the Favorites link on /favorites", () => {
+  renderNavigation("/favorites");
+
+  expect(screen.getByRole("link", { name: "Favorites" })).toHaveClass("active");
+  expect(screen.getByRole("link", { name: "Gallery" })).not.toHaveClass(
     "active"
   );
 });
