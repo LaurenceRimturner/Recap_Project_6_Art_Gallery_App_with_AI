@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 
 import type { ArtPiece } from "../types";
@@ -43,6 +44,19 @@ test("shows the image", () => {
     "src",
     pieces[0].imageSource
   );
+});
+
+test("shows the title", () => {
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+
+  expect(screen.getByRole("figure")).toHaveTextContent(`"${pieces[0].name}"`);
 });
 
 test("shows the artist's name", () => {
@@ -213,4 +227,38 @@ test("shows a favorite button", () => {
   expect(
     screen.getByRole("button", { name: "Add to favorites" })
   ).toBeInTheDocument();
+});
+
+test("shows a favorite as pressed", () => {
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => true}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("toggles the favorite with the slug of the piece", async () => {
+  const onToggleFavorite = vi.fn();
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={onToggleFavorite}
+    />,
+    { wrapper: MemoryRouter }
+  );
+
+  await userEvent.click(
+    screen.getByRole("button", { name: "Add to favorites" })
+  );
+
+  expect(onToggleFavorite).toHaveBeenCalledTimes(1);
+  expect(onToggleFavorite).toHaveBeenCalledWith(pieces[0].slug);
 });

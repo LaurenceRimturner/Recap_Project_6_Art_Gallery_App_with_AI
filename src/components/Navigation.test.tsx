@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 
 import Navigation from "./Navigation";
@@ -63,4 +63,11 @@ test("highlights the Favorites link on /favorites", () => {
   expect(screen.getByRole("link", { name: "Gallery" })).not.toHaveClass(
     "active"
   );
+});
+
+test("shows exactly three links inside the navigation", () => {
+  renderNavigation();
+
+  const nav = screen.getByRole("navigation");
+  expect(within(nav).getAllByRole("link")).toHaveLength(3);
 });
