@@ -315,6 +315,7 @@ nav a.active {
 }
 
 .details > a::before {
+  content: "←";
   content: "←" / "";
 }
 
@@ -414,23 +415,23 @@ nav a.active {
 }
 
 /* comments and form sit in the right-hand column, like the other details */
-.details > section,
+.details > section:not(.color-palette),
 .details > .comment-form {
   grid-column: 9 / -1;
 }
 
 @media (max-width: 900px) {
-  .details > section,
+  .details > section:not(.color-palette),
   .details > .comment-form {
     grid-column: 1 / -1;
   }
 }
 
-.details > section {
+.details > section:not(.color-palette) {
   margin-top: calc(var(--unit) * 4);
 }
 
-.details h3 {
+.details > section:not(.color-palette) h3 {
   padding-top: var(--unit);
   border-top: 2px solid var(--ink);
   font-size: 1.25rem;
@@ -452,6 +453,7 @@ nav a.active {
 
 /* beats the generic .details p rule: no extra rule line inside a comment */
 .comments li p {
+  grid-column: auto;
   padding: 0;
   border-top: 0;
   overflow-wrap: anywhere;
