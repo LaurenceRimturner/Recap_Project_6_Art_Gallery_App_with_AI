@@ -228,7 +228,9 @@ test("shows the details after clicking a piece in the list", async () => {
   expect(
     await screen.findByRole("heading", { name: "Wheat Field" })
   ).toBeInTheDocument();
-  expect(screen.queryByRole("list")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: /Wheat Field/ })
+  ).not.toBeInTheDocument();
 });
 
 test("goes back to the list after clicking Back", async () => {
@@ -460,4 +462,82 @@ test("removes a piece from /favorites when it is unfavorited", async () => {
   expect(
     screen.queryByRole("img", { name: pieces[0].name })
   ).not.toBeInTheDocument();
+});
+
+test("adds a comment on the details page", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  await userEvent.type(await screen.findByRole("textbox"), "Golden light");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+  expect(screen.getByText("Golden light")).toBeInTheDocument();
+  expect(screen.getByRole("textbox")).toHaveValue("");
+});
+
+test("lists the newest comment first", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  const field = await screen.findByRole("textbox");
+  await userEvent.type(field, "Older comment");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+  await userEvent.type(field, "Newer comment");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+  const items = screen.getAllByRole("listitem");
+  expect(items[0]).toHaveTextContent("Newer comment");
+  expect(items[1]).toHaveTextContent("Older comment");
+});
+
+test("shows a comment only on the art piece it was added to", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+  await userEvent.type(await screen.findByRole("textbox"), "Golden light");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+  await userEvent.click(
+    await screen.findByRole("link", { name: /Orange Red and Green/ })
+  );
+
+  expect(
+    await screen.findByRole("heading", { name: "Orange Red and Green" })
+  ).toBeInTheDocument();
+  expect(screen.queryByText("Golden light")).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+  await userEvent.click(
+    await screen.findByRole("link", { name: /Wheat Field/ })
+  );
+
+  expect(await screen.findByText("Golden light")).toBeInTheDocument();
+});
+
+test("keeps the favorite status and the comment when both are set on the details page", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Add to favorites" })
+  );
+  await userEvent.type(screen.getByRole("textbox"), "Golden light");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+  expect(screen.getByText("Golden light")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  ).toHaveAttribute("aria-pressed", "true");
 });
