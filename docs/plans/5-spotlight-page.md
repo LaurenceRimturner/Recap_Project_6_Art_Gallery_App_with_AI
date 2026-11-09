@@ -28,14 +28,16 @@ SWR tests keep the fresh-cache `SWRConfig` wrapper.
 ## Files that change
 
 - `src/pickRandom.ts` (new): `pickRandom<T>(items: T[]): T | undefined` using `crypto.getRandomValues` (lint rule `sonarjs/pseudo-random` forbids `Math.random`).
-- `src/components/Spotlight.tsx` (new): props `{ pieces: ArtPiece[] }`; picks once via `useState(() => pickRandom(pieces))`; renders `<figure className="art-piece spotlight">` with `img` (alt = name) and `<figcaption>"name" by artist</figcaption>`; renders nothing for an empty array.
+- `src/components/Spotlight.tsx` (new): props `{ pieces: ArtPiece[] }`; picks once via `useState(() => pickRandom(pieces))`; renders `<figure className="art-piece spotlight">` with `img` (alt = name) and `<figcaption>"name" by artist</figcaption>`; renders nothing for an empty array, and picks later if the first render had no pieces.
+- `src/components/ArtPieces.tsx` (modify, added on request after the plan): `className="art-list"` on the `ul`, `className="art-piece"` on each `li`.
+- `.github/workflows/ci.yml` (modify, added on request): `npm run format:check` step.
 - `src/App.tsx` (modify): extract the loading/error handling into a shared helper used by both routes; add `<Route path="/" ...>` rendering `<Spotlight pieces={data} />`.
 - Test files next to each of the above; update `src/App.test.tsx`.
 - `src/styles.css`: no change. `.art-piece` and `.spotlight img` already exist (`.spotlight img` is declared later, so it overrides the image height).
 
 ## Out of scope
 
-Navigation bar/links, favorite buttons, details page, gallery page changes (no classNames on `ArtPieces`/`ArtPiecePreview`), persistence, a "new random piece" button, a 404 route.
+Navigation bar/links, favorite buttons, details page, other gallery page changes (the `ArtPieces` classNames were added later on request; `ArtPiecePreview` is untouched), an empty-data message, persistence, a "new random piece" button, a 404 route.
 
 ## Decisions (confirmed)
 
