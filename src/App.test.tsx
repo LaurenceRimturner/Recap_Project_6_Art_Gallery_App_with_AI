@@ -254,3 +254,107 @@ test("shows Art piece not found for an unknown slug", async () => {
   expect(await screen.findByText("Art piece not found")).toBeInTheDocument();
   expect(screen.getByRole("navigation")).toBeInTheDocument();
 });
+
+test("marks a piece as favorite from the gallery", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+
+  expect(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("removes a piece from favorites", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+  await userEvent.click(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  );
+
+  expect(
+    screen.queryByRole("button", { name: "Remove from favorites" })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getAllByRole("button", { name: "Add to favorites" })
+  ).toHaveLength(pieces.length);
+});
+
+test("favoriting one piece leaves the others unchanged", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+
+  expect(
+    screen.getAllByRole("button", { name: "Remove from favorites" })
+  ).toHaveLength(1);
+  expect(
+    screen.getAllByRole("button", { name: "Add to favorites" })
+  ).toHaveLength(pieces.length - 1);
+});
+
+test("keeps the favorite status between gallery and details", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+  await userEvent.click(
+    screen.getByRole("link", { name: /Orange Red and Green/ })
+  );
+
+  const onDetails = await screen.findByRole("button", {
+    name: "Remove from favorites",
+  });
+  expect(onDetails).toHaveAttribute("aria-pressed", "true");
+
+  await userEvent.click(onDetails);
+  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+
+  expect(
+    await screen.findAllByRole("button", { name: "Add to favorites" })
+  ).toHaveLength(pieces.length);
+});
+
+test("shows the favorite status on the spotlight", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => [pieces[0]] })
+  );
+  renderApp("/");
+
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Add to favorites" })
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  ).toHaveAttribute("aria-pressed", "true");
+});

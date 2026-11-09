@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router";
 
 import type { ArtPiece } from "../types";
 import ArtPiecePreview from "./ArtPiecePreview";
@@ -14,7 +15,14 @@ const piece: ArtPiece = {
 };
 
 test("shows the image", () => {
-  render(<ArtPiecePreview piece={piece} />, { wrapper: MemoryRouter });
+  render(
+    <ArtPiecePreview
+      piece={piece}
+      isFavorite={false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
 
   expect(screen.getByRole("img", { name: piece.name })).toHaveAttribute(
     "src",
@@ -23,13 +31,27 @@ test("shows the image", () => {
 });
 
 test("shows the title", () => {
-  render(<ArtPiecePreview piece={piece} />, { wrapper: MemoryRouter });
+  render(
+    <ArtPiecePreview
+      piece={piece}
+      isFavorite={false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
 
   expect(screen.getByRole("figure")).toHaveTextContent(`"${piece.name}"`);
 });
 
 test("shows the artist's name", () => {
-  render(<ArtPiecePreview piece={piece} />, { wrapper: MemoryRouter });
+  render(
+    <ArtPiecePreview
+      piece={piece}
+      isFavorite={false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
 
   expect(screen.getByRole("figure")).toHaveTextContent(`by ${piece.artist}`);
 });
@@ -37,11 +59,67 @@ test("shows the artist's name", () => {
 test("links to the details page", () => {
   render(
     <MemoryRouter>
-      <ArtPiecePreview piece={piece} />
+      <ArtPiecePreview
+        piece={piece}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+      />
     </MemoryRouter>
   );
 
   expect(
     screen.getByRole("link", { name: new RegExp(piece.name) })
   ).toHaveAttribute("href", `/art-pieces/${piece.slug}`);
+});
+
+test("shows a favorite button", () => {
+  render(
+    <ArtPiecePreview
+      piece={piece}
+      isFavorite={false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Add to favorites" })
+  ).toBeInTheDocument();
+});
+
+test("shows a favorite as pressed", () => {
+  render(
+    <ArtPiecePreview piece={piece} isFavorite onToggleFavorite={() => {}} />,
+    { wrapper: MemoryRouter }
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("clicking the favorite button toggles without opening the details page", async () => {
+  const onToggleFavorite = vi.fn();
+  render(
+    <MemoryRouter initialEntries={["/art-pieces"]}>
+      <Routes>
+        <Route
+          path="/art-pieces"
+          element={
+            <ArtPiecePreview
+              piece={piece}
+              isFavorite={false}
+              onToggleFavorite={onToggleFavorite}
+            />
+          }
+        />
+        <Route path="/art-pieces/:slug" element={<p>Details page</p>} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: /favorite/i }));
+
+  expect(onToggleFavorite).toHaveBeenCalledTimes(1);
+  expect(screen.queryByText("Details page")).not.toBeInTheDocument();
 });

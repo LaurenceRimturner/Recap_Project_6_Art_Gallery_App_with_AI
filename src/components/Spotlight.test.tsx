@@ -28,7 +28,14 @@ afterEach(() => {
 });
 
 test("shows the image", () => {
-  render(<Spotlight pieces={[pieces[0]]} />, { wrapper: MemoryRouter });
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
 
   expect(screen.getByRole("img", { name: pieces[0].name })).toHaveAttribute(
     "src",
@@ -37,7 +44,14 @@ test("shows the image", () => {
 });
 
 test("shows the artist's name", () => {
-  render(<Spotlight pieces={[pieces[0]]} />, { wrapper: MemoryRouter });
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
 
   expect(screen.getByText(/Ad Reinhardt/)).toBeInTheDocument();
 });
@@ -49,16 +63,29 @@ test("keeps the same piece on re-render", () => {
       (array as unknown as Uint32Array)[0] = 0;
       return array;
     });
-  const { rerender } = render(<Spotlight pieces={pieces} />, {
-    wrapper: MemoryRouter,
-  });
+  const { rerender } = render(
+    <Spotlight
+      pieces={pieces}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    {
+      wrapper: MemoryRouter,
+    }
+  );
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
 
   random.mockImplementation(<T extends ArrayBufferView>(array: T) => {
     (array as unknown as Uint32Array)[0] = 2 ** 32 - 1;
     return array;
   });
-  rerender(<Spotlight pieces={pieces} />);
+  rerender(
+    <Spotlight
+      pieces={pieces}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />
+  );
 
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
   expect(
@@ -73,11 +100,24 @@ test("keeps the same piece when the pieces prop changes", () => {
       return array;
     }
   );
-  const { rerender } = render(<Spotlight pieces={pieces} />, {
-    wrapper: MemoryRouter,
-  });
+  const { rerender } = render(
+    <Spotlight
+      pieces={pieces}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    {
+      wrapper: MemoryRouter,
+    }
+  );
 
-  rerender(<Spotlight pieces={[...pieces].reverse()} />);
+  rerender(
+    <Spotlight
+      pieces={[...pieces].reverse()}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />
+  );
 
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
 });
@@ -89,18 +129,37 @@ test("picks a piece once data arrives after an empty first render", () => {
       (array as unknown as Uint32Array)[0] = 0;
       return array;
     });
-  const { rerender } = render(<Spotlight pieces={[]} />, {
-    wrapper: MemoryRouter,
-  });
+  const { rerender } = render(
+    <Spotlight
+      pieces={[]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    {
+      wrapper: MemoryRouter,
+    }
+  );
 
-  rerender(<Spotlight pieces={pieces} />);
+  rerender(
+    <Spotlight
+      pieces={pieces}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />
+  );
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
 
   random.mockImplementation(<T extends ArrayBufferView>(array: T) => {
     (array as unknown as Uint32Array)[0] = 2 ** 32 - 1;
     return array;
   });
-  rerender(<Spotlight pieces={pieces} />);
+  rerender(
+    <Spotlight
+      pieces={pieces}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />
+  );
 
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
   expect(
@@ -111,7 +170,11 @@ test("picks a piece once data arrives after an empty first render", () => {
 test("links to the details page", () => {
   render(
     <MemoryRouter>
-      <Spotlight pieces={[pieces[0]]} />
+      <Spotlight
+        pieces={[pieces[0]]}
+        isFavorite={() => false}
+        onToggleFavorite={() => {}}
+      />
     </MemoryRouter>
   );
 
@@ -121,9 +184,31 @@ test("links to the details page", () => {
 });
 
 test("renders nothing for an empty array", () => {
-  const { container } = render(<Spotlight pieces={[]} />, {
-    wrapper: MemoryRouter,
-  });
+  const { container } = render(
+    <Spotlight
+      pieces={[]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    {
+      wrapper: MemoryRouter,
+    }
+  );
 
   expect(container).toBeEmptyDOMElement();
+});
+
+test("shows a favorite button", () => {
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Add to favorites" })
+  ).toBeInTheDocument();
 });

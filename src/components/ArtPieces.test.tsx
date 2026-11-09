@@ -24,7 +24,29 @@ const pieces: ArtPiece[] = [
 ];
 
 test("renders one list item per art piece", () => {
-  render(<ArtPieces pieces={pieces} />, { wrapper: MemoryRouter });
+  render(
+    <ArtPieces
+      pieces={pieces}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
 
   expect(screen.getAllByRole("listitem")).toHaveLength(pieces.length);
+});
+
+test("shows a favorite button for each piece", () => {
+  render(
+    <ArtPieces
+      pieces={pieces}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+
+  expect(screen.getAllByRole("button", { name: /favorite/i })).toHaveLength(
+    pieces.length
+  );
 });
