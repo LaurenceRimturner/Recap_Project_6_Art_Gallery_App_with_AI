@@ -13,16 +13,16 @@ A `Navigation` component with "Spotlight" (`/`) and "Gallery" (`/art-pieces`) li
 
 ## Tests per acceptance criterion
 
-| Criterion                                  | Test (file: name)                                                 | Asserts                                                                                                                  |
-| ------------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| "Spotlight" link displayed                 | `src/components/Navigation.test.tsx`: shows a Spotlight link      | `getByRole("link", { name: "Spotlight" })` has `href="/"`                                                                |
-| "Gallery" link displayed                   | `Navigation.test.tsx`: shows a Gallery link                       | `getByRole("link", { name: "Gallery" })` has `href="/art-pieces"`                                                        |
-| Current page link highlighted              | `Navigation.test.tsx`: highlights the Spotlight link on /         | at `/`, Spotlight has class `active`, Gallery does not (covers `end`)                                                    |
-| (same)                                     | `Navigation.test.tsx`: highlights the Gallery link on /art-pieces | at `/art-pieces`, Gallery has class `active`, Spotlight does not                                                         |
-| Clicking "Spotlight" shows Spotlight page  | `src/App.test.tsx`: shows the spotlight after clicking Spotlight  | start at `/art-pieces`, click the link, the spotlight image for a single-piece mocked fetch appears and the list is gone |
-| Clicking "Gallery" shows Gallery page      | `App.test.tsx`: shows the gallery after clicking Gallery          | start at `/`, click the link, the list (`getByRole("list")`) appears                                                     |
-| Unknown URLs show "Page not found"         | `App.test.tsx`: shows Page not found on unknown URLs              | at `/unknown`, "Page not found" is displayed                                                                             |
-| Task: render Navigation once, on all pages | `App.test.tsx`: shows the navigation once on every page           | on `/`, `/art-pieces` and `/unknown`, `getAllByRole("navigation")` has length 1                                          |
+| Criterion                                  | Test (file: name)                                                                                 | Asserts                                                                                                                  |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| "Spotlight" link displayed                 | `src/components/Navigation.test.tsx`: shows a Spotlight link                                      | `getByRole("link", { name: "Spotlight" })` has `href="/"`                                                                |
+| "Gallery" link displayed                   | `Navigation.test.tsx`: shows a Gallery link                                                       | `getByRole("link", { name: "Gallery" })` has `href="/art-pieces"`                                                        |
+| Current page link highlighted              | `Navigation.test.tsx`: highlights the Spotlight link on /                                         | at `/`, Spotlight has class `active`, Gallery does not (covers `end`)                                                    |
+| (same)                                     | `Navigation.test.tsx`: highlights the Gallery link on /art-pieces                                 | at `/art-pieces`, Gallery has class `active`, Spotlight does not                                                         |
+| Clicking "Spotlight" shows Spotlight page  | `src/App.test.tsx`: shows the spotlight after clicking Spotlight                                  | start at `/art-pieces`, click the link, the spotlight image for a single-piece mocked fetch appears and the list is gone |
+| Clicking "Gallery" shows Gallery page      | `App.test.tsx`: shows the gallery after clicking Gallery                                          | start at `/`, click the link, the list (`getByRole("list")`) appears                                                     |
+| Unknown URLs show "Page not found"         | `App.test.tsx`: shows Page not found on unknown URLs                                              | at `/unknown`, "Page not found" is displayed                                                                             |
+| Task: render Navigation once, on all pages | `App.test.tsx`: shows the navigation once on %s (`test.each` over `/`, `/art-pieces`, `/unknown`) | on `/`, `/art-pieces` and `/unknown`, `getAllByRole("navigation")` has length 1                                          |
 
 Navigation tests wrap the component in `MemoryRouter`; App tests keep the fresh-cache `SWRConfig` wrapper. The right-edge position is CSS only and is not covered by a test (jsdom does not compute layout); it is checked manually.
 
@@ -31,7 +31,7 @@ Navigation tests wrap the component in `MemoryRouter`; App tests keep the fresh-
 - `src/components/Navigation.tsx` (new): `<nav>` mapping a links array to `NavLink`s: `/` with `end` ("Spotlight") and `/art-pieces` ("Gallery").
 - `src/App.tsx` (modify): render `<Navigation />` once after `<main>` (wrap in a fragment); add inline `<Route path="*" element={<p>Page not found</p>} />`.
 - `src/components/Navigation.test.tsx` (new), `src/App.test.tsx` (add tests; existing tests stay unchanged).
-- `src/styles.css` (modify, requested): `nav` becomes a fixed vertical bar on the right edge (`top: 0; right: 0; bottom: 0; left: auto; flex-direction: column; justify-content: center`), and `main`'s bottom padding is replaced by right padding so content is not covered.
+- `src/styles.css` (modify, requested): `nav` becomes a fixed vertical bar on the right edge (`top: 0; right: 0; bottom: 0; left: auto; flex-direction: column; justify-content: center`), and `main`'s bottom padding is replaced by right padding so content is not covered. Both use one `--nav-width` CSS variable (8rem) so they stay in sync.
 
 ## Future pages
 
