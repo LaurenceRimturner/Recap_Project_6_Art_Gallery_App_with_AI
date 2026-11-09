@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { Route, Routes } from "react-router";
+import { Route, Routes, useParams } from "react-router";
 import useSWR from "swr";
 
+import ArtPieceDetails from "./components/ArtPieceDetails";
 import ArtPieces from "./components/ArtPieces";
 import Navigation from "./components/Navigation";
 import Spotlight from "./components/Spotlight";
@@ -10,6 +11,14 @@ import "./styles.css";
 import type { ArtPiece } from "./types";
 
 const ART_API_URL = "https://example-apis.vercel.app/api/art";
+
+function ArtPieceRoute({ pieces }: { pieces: ArtPiece[] }) {
+  const { slug } = useParams();
+  const piece = pieces.find((candidate) => candidate.slug === slug);
+
+  if (!piece) return <p>Art piece not found</p>;
+  return <ArtPieceDetails piece={piece} />;
+}
 
 export default function App() {
   const { data, error } = useSWR<ArtPiece[]>(ART_API_URL, fetcher);
@@ -35,6 +44,12 @@ export default function App() {
             path="/art-pieces"
             element={renderWithPieces((pieces) => (
               <ArtPieces pieces={pieces} />
+            ))}
+          />
+          <Route
+            path="/art-pieces/:slug"
+            element={renderWithPieces((pieces) => (
+              <ArtPieceRoute pieces={pieces} />
             ))}
           />
           <Route path="*" element={<p>Page not found</p>} />
