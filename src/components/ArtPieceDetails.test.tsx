@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 
 import type { ArtPiece } from "../types";
@@ -16,7 +17,11 @@ const piece: ArtPiece = {
 function renderDetails() {
   return render(
     <MemoryRouter>
-      <ArtPieceDetails piece={piece} />
+      <ArtPieceDetails
+        piece={piece}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+      />
     </MemoryRouter>
   );
 }
@@ -61,4 +66,41 @@ test("shows a back link", () => {
     "href",
     "/art-pieces"
   );
+});
+
+test("shows a favorite button", () => {
+  renderDetails();
+
+  expect(
+    screen.getByRole("button", { name: "Add to favorites" })
+  ).toBeInTheDocument();
+});
+
+test("shows a favorite as pressed", () => {
+  render(
+    <MemoryRouter>
+      <ArtPieceDetails piece={piece} isFavorite onToggleFavorite={() => {}} />
+    </MemoryRouter>
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("calls onToggleFavorite when the favorite button is clicked", async () => {
+  const onToggleFavorite = vi.fn();
+  render(
+    <MemoryRouter>
+      <ArtPieceDetails
+        piece={piece}
+        isFavorite={false}
+        onToggleFavorite={onToggleFavorite}
+      />
+    </MemoryRouter>
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: /favorite/i }));
+
+  expect(onToggleFavorite).toHaveBeenCalledTimes(1);
 });
