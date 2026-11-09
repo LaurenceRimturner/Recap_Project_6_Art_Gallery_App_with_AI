@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { SWRConfig } from "swr";
 
@@ -138,3 +139,54 @@ test("shows an error message when loading fails", async () => {
     await screen.findByText("Failed to load art pieces.")
   ).toBeInTheDocument();
 });
+
+test("shows the spotlight after clicking Spotlight", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => [pieces[0]] })
+  );
+  renderApp("/art-pieces");
+  await screen.findByRole("list");
+
+  await userEvent.click(screen.getByRole("link", { name: "Spotlight" }));
+
+  expect(
+    await screen.findByRole("img", { name: pieces[0].name })
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("list")).not.toBeInTheDocument();
+});
+
+test("shows the gallery after clicking Gallery", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/");
+  await screen.findByRole("img", { name: /./ });
+
+  await userEvent.click(screen.getByRole("link", { name: "Gallery" }));
+
+  expect(await screen.findByRole("list")).toBeInTheDocument();
+});
+
+test("shows Page not found on unknown URLs", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/unknown");
+
+  expect(await screen.findByText("Page not found")).toBeInTheDocument();
+});
+
+test.each(["/", "/art-pieces", "/unknown"])(
+  "shows the navigation once on %s",
+  (route) => {
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {})));
+
+    renderApp(route);
+
+    expect(screen.getAllByRole("navigation")).toHaveLength(1);
+  }
+);
