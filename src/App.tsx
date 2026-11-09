@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Route, Routes, useParams } from "react-router";
 import useSWR from "swr";
 
@@ -11,6 +11,7 @@ import "./styles.css";
 import type { ArtPiece, ArtPieceComment, ArtPieceInfo } from "./types";
 
 const ART_API_URL = "https://example-apis.vercel.app/api/art";
+const STORAGE_KEY = "art-pieces-info";
 
 type ArtPieceRouteProps = {
   pieces: ArtPiece[];
@@ -42,9 +43,25 @@ function ArtPieceRoute({
   );
 }
 
+function loadArtPiecesInfo(): ArtPieceInfo[] {
+  try {
+    const stored: unknown = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) ?? "[]"
+    );
+    return Array.isArray(stored) ? (stored as ArtPieceInfo[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function App() {
   const { data, error } = useSWR<ArtPiece[]>(ART_API_URL, fetcher);
-  const [artPiecesInfo, setArtPiecesInfo] = useState<ArtPieceInfo[]>([]);
+  const [artPiecesInfo, setArtPiecesInfo] =
+    useState<ArtPieceInfo[]>(loadArtPiecesInfo);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(artPiecesInfo));
+  }, [artPiecesInfo]);
 
   function isFavorite(slug: string) {
     return artPiecesInfo.some((info) => info.slug === slug && info.isFavorite);
