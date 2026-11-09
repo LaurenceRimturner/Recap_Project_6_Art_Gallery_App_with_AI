@@ -547,6 +547,140 @@ test("keeps the favorite status and the comment when both are set on the details
   ).toHaveAttribute("aria-pressed", "true");
 });
 
+const STORAGE_KEY = "art-pieces-info";
+
+test("restores favorites from localStorage on load", async () => {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([{ slug: "wheat-field", isFavorite: true, comments: [] }])
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/art-pieces");
+
+  expect(
+    await screen.findAllByRole("button", { name: "Remove from favorites" })
+  ).toHaveLength(1);
+  expect(
+    screen.getAllByRole("button", { name: "Add to favorites" })
+  ).toHaveLength(pieces.length - 1);
+});
+
+test("saves a favorite to localStorage", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+  expect(stored).toEqual([
+    { slug: pieces[0].slug, isFavorite: true, comments: [] },
+  ]);
+});
+
+test("restores comments from localStorage on load", async () => {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([
+      {
+        slug: "wheat-field",
+        isFavorite: false,
+        comments: [{ text: "Golden light", date: "2026-01-01T00:00:00.000Z" }],
+      },
+    ])
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/art-pieces/wheat-field");
+
+  expect(await screen.findByText("Golden light")).toBeInTheDocument();
+});
+
+test("saves a comment to localStorage", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  await userEvent.type(await screen.findByRole("textbox"), "Golden light");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+  expect(stored).toHaveLength(1);
+  expect(stored[0]).toMatchObject({
+    slug: "wheat-field",
+    isFavorite: false,
+    comments: [{ text: "Golden light" }],
+  });
+});
+
+test("keeps favorite and comment after remounting the app", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  const { unmount } = renderApp("/art-pieces/wheat-field");
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Add to favorites" })
+  );
+  await userEvent.type(screen.getByRole("textbox"), "Golden light");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+  unmount();
+
+  renderApp("/art-pieces/wheat-field");
+
+  expect(
+    await screen.findByRole("button", { name: "Remove from favorites" })
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByText("Golden light")).toBeInTheDocument();
+});
+
+test("works with empty localStorage", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/art-pieces");
+
+  expect(
+    await screen.findAllByRole("button", { name: "Add to favorites" })
+  ).toHaveLength(pieces.length);
+  expect(
+    screen.queryByRole("button", { name: "Remove from favorites" })
+  ).not.toBeInTheDocument();
+});
+
+test.each(["{oops", "{}"])(
+  "ignores invalid data %s in localStorage",
+  async (value) => {
+    localStorage.setItem(STORAGE_KEY, value);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+    );
+
+    renderApp("/art-pieces");
+
+    expect(
+      await screen.findAllByRole("button", { name: "Add to favorites" })
+    ).toHaveLength(pieces.length);
+  }
+);
+
 test("shows the colors on /art-pieces/:slug", async () => {
   vi.stubGlobal(
     "fetch",
