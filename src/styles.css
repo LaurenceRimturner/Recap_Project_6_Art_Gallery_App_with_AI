@@ -12,18 +12,24 @@ body {
   background: #f6f4ef;
 }
 
+:root {
+  --nav-width: 8rem;
+}
+
 main {
   max-width: 60rem;
   margin: 0 auto;
-  padding: 1rem 1rem 5rem;
+  padding: 1rem calc(var(--nav-width) + 1rem) 1rem 1rem;
 }
 
 nav {
   position: fixed;
+  top: 0;
   right: 0;
   bottom: 0;
-  left: 0;
   display: flex;
+  width: var(--nav-width);
+  flex-direction: column;
   justify-content: center;
   gap: 1.5rem;
   padding: 1rem;
