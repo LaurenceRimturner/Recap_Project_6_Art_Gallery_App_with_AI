@@ -22,8 +22,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run format:check` – check formatting with Prettier
 - Single test file: `npx vitest run src/path/file.test.tsx`
 
-`test:run`, `coverage`, `lint`, `format` and `format:check` are added in setup issue 1; remove this note once they exist.
-
 Checks before every PR: `check`, `lint`, `format:check`, `test:run`, `build`.
 
 ## Conventions
