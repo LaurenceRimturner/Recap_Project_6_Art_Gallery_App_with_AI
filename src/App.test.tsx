@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { SWRConfig } from "swr";
 
@@ -72,6 +72,23 @@ test("shows the spotlight on /", async () => {
     await screen.findByRole("img", { name: pieces[0].name })
   ).toHaveAttribute("src", pieces[0].imageSource);
   expect(screen.getByText(/Ad Reinhardt/)).toBeInTheDocument();
+});
+
+test("shows no spotlight and no error on / when there are no pieces", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => [] })
+  );
+
+  renderApp("/");
+
+  await waitFor(() =>
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+  );
+  expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  expect(
+    screen.queryByText("Failed to load art pieces.")
+  ).not.toBeInTheDocument();
 });
 
 test("shows a loading message on /", () => {
