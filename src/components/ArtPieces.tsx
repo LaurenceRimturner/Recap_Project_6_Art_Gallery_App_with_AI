@@ -7,9 +7,9 @@ type ArtPiecesProps = {
 
 export default function ArtPieces({ pieces }: ArtPiecesProps) {
   return (
-    <ul>
+    <ul className="art-list">
       {pieces.map((piece) => (
-        <li key={piece.slug}>
+        <li key={piece.slug} className="art-piece">
           <ArtPiecePreview piece={piece} />
         </li>
       ))}
