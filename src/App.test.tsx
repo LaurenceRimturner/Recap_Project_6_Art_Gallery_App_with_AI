@@ -370,6 +370,7 @@ test("shows the favorites page after clicking Favorites", async () => {
   await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
 
   expect(await screen.findByRole("list")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Favorites" })).toHaveClass("active");
   expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   expect(screen.queryByText("Page not found")).not.toBeInTheDocument();
 });
@@ -437,4 +438,26 @@ test("shows an active favorite button for each favorite", async () => {
   for (const button of buttons) {
     expect(button).toHaveAttribute("aria-pressed", "true");
   }
+});
+
+test("removes a piece from /favorites when it is unfavorited", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Remove from favorites" })
+  );
+
+  expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+  expect(
+    screen.queryByRole("img", { name: pieces[0].name })
+  ).not.toBeInTheDocument();
 });
