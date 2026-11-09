@@ -12,12 +12,16 @@ const pieces: ArtPiece[] = [
     artist: "Ad Reinhardt",
     name: "Orange Red and Green",
     imageSource: "https://example.com/orange.jpg",
+    year: "1955",
+    genre: "Abstract Expressionism",
   },
   {
     slug: "wheat-field",
     artist: "Vincent van Gogh",
     name: "Wheat Field",
     imageSource: "https://example.com/wheat.jpg",
+    year: "1888",
+    genre: "Post-Impressionism",
   },
 ];
 
@@ -190,3 +194,63 @@ test.each(["/", "/art-pieces", "/unknown"])(
     expect(screen.getAllByRole("navigation")).toHaveLength(1);
   }
 );
+
+test("shows the details on /art-pieces/:slug", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/art-pieces/wheat-field");
+
+  expect(
+    await screen.findByRole("heading", { name: "Wheat Field" })
+  ).toBeInTheDocument();
+  expect(screen.getByText(/Vincent van Gogh/)).toBeInTheDocument();
+  expect(screen.getByText(/1888/)).toBeInTheDocument();
+  expect(screen.getByText(/Post-Impressionism/)).toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", { name: "Orange Red and Green" })
+  ).not.toBeInTheDocument();
+});
+
+test("shows the details after clicking a piece in the list", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+
+  await userEvent.click(
+    await screen.findByRole("link", { name: /Wheat Field/ })
+  );
+
+  expect(
+    await screen.findByRole("heading", { name: "Wheat Field" })
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("list")).not.toBeInTheDocument();
+});
+
+test("goes back to the list after clicking Back", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  await userEvent.click(await screen.findByRole("link", { name: "Back" }));
+
+  expect(await screen.findByRole("list")).toBeInTheDocument();
+});
+
+test("shows Art piece not found for an unknown slug", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/art-pieces/nope");
+
+  expect(await screen.findByText("Art piece not found")).toBeInTheDocument();
+  expect(screen.getByRole("navigation")).toBeInTheDocument();
+});

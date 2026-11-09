@@ -12,6 +12,8 @@ test("returns the parsed data", async () => {
       artist: "Vincent van Gogh",
       name: "Wheat Field",
       imageSource: "https://example.com/wheat.jpg",
+      year: "1888",
+      genre: "Post-Impressionism",
     },
   ];
   vi.stubGlobal(

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 
 import type { ArtPiece } from "../types";
 import Spotlight from "./Spotlight";
@@ -9,12 +10,16 @@ const pieces: ArtPiece[] = [
     artist: "Ad Reinhardt",
     name: "Orange Red and Green",
     imageSource: "https://example.com/orange.jpg",
+    year: "1955",
+    genre: "Abstract Expressionism",
   },
   {
     slug: "wheat-field",
     artist: "Vincent van Gogh",
     name: "Wheat Field",
     imageSource: "https://example.com/wheat.jpg",
+    year: "1888",
+    genre: "Post-Impressionism",
   },
 ];
 
@@ -23,7 +28,7 @@ afterEach(() => {
 });
 
 test("shows the image", () => {
-  render(<Spotlight pieces={[pieces[0]]} />);
+  render(<Spotlight pieces={[pieces[0]]} />, { wrapper: MemoryRouter });
 
   expect(screen.getByRole("img", { name: pieces[0].name })).toHaveAttribute(
     "src",
@@ -32,7 +37,7 @@ test("shows the image", () => {
 });
 
 test("shows the artist's name", () => {
-  render(<Spotlight pieces={[pieces[0]]} />);
+  render(<Spotlight pieces={[pieces[0]]} />, { wrapper: MemoryRouter });
 
   expect(screen.getByText(/Ad Reinhardt/)).toBeInTheDocument();
 });
@@ -44,7 +49,9 @@ test("keeps the same piece on re-render", () => {
       (array as unknown as Uint32Array)[0] = 0;
       return array;
     });
-  const { rerender } = render(<Spotlight pieces={pieces} />);
+  const { rerender } = render(<Spotlight pieces={pieces} />, {
+    wrapper: MemoryRouter,
+  });
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
 
   random.mockImplementation(<T extends ArrayBufferView>(array: T) => {
@@ -66,7 +73,9 @@ test("keeps the same piece when the pieces prop changes", () => {
       return array;
     }
   );
-  const { rerender } = render(<Spotlight pieces={pieces} />);
+  const { rerender } = render(<Spotlight pieces={pieces} />, {
+    wrapper: MemoryRouter,
+  });
 
   rerender(<Spotlight pieces={[...pieces].reverse()} />);
 
@@ -80,7 +89,9 @@ test("picks a piece once data arrives after an empty first render", () => {
       (array as unknown as Uint32Array)[0] = 0;
       return array;
     });
-  const { rerender } = render(<Spotlight pieces={[]} />);
+  const { rerender } = render(<Spotlight pieces={[]} />, {
+    wrapper: MemoryRouter,
+  });
 
   rerender(<Spotlight pieces={pieces} />);
   expect(screen.getByRole("img", { name: pieces[0].name })).toBeInTheDocument();
@@ -97,8 +108,22 @@ test("picks a piece once data arrives after an empty first render", () => {
   ).not.toBeInTheDocument();
 });
 
+test("links to the details page", () => {
+  render(
+    <MemoryRouter>
+      <Spotlight pieces={[pieces[0]]} />
+    </MemoryRouter>
+  );
+
+  expect(
+    screen.getByRole("link", { name: new RegExp(pieces[0].name) })
+  ).toHaveAttribute("href", `/art-pieces/${pieces[0].slug}`);
+});
+
 test("renders nothing for an empty array", () => {
-  const { container } = render(<Spotlight pieces={[]} />);
+  const { container } = render(<Spotlight pieces={[]} />, {
+    wrapper: MemoryRouter,
+  });
 
   expect(container).toBeEmptyDOMElement();
 });
