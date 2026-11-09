@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { SWRConfig } from "swr";
@@ -14,6 +14,7 @@ const pieces: ArtPiece[] = [
     imageSource: "https://example.com/orange.jpg",
     year: "1955",
     genre: "Abstract Expressionism",
+    colors: ["#37412E", "#8D7332"],
   },
   {
     slug: "wheat-field",
@@ -22,6 +23,7 @@ const pieces: ArtPiece[] = [
     imageSource: "https://example.com/wheat.jpg",
     year: "1888",
     genre: "Post-Impressionism",
+    colors: ["#E8C547", "#4B6A88", "#9DA59E"],
   },
 ];
 
@@ -491,7 +493,10 @@ test("lists the newest comment first", async () => {
   await userEvent.type(field, "Newer comment");
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
 
-  const items = screen.getAllByRole("listitem");
+  const commentsSection = screen
+    .getByRole("heading", { name: "Comments" })
+    .closest("section") as HTMLElement;
+  const items = within(commentsSection).getAllByRole("listitem");
   expect(items[0]).toHaveTextContent("Newer comment");
   expect(items[1]).toHaveTextContent("Older comment");
 });
@@ -540,4 +545,19 @@ test("keeps the favorite status and the comment when both are set on the details
   expect(
     screen.getByRole("button", { name: "Remove from favorites" })
   ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("shows the colors on /art-pieces/:slug", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  expect(
+    await screen.findByRole("heading", { name: "Colors" })
+  ).toBeInTheDocument();
+  pieces[1].colors.forEach((color) => {
+    expect(screen.getByText(color)).toBeInTheDocument();
+  });
 });

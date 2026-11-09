@@ -14,6 +14,7 @@ test("returns the parsed data", async () => {
       imageSource: "https://example.com/wheat.jpg",
       year: "1888",
       genre: "Post-Impressionism",
+      colors: ["#37412E", "#8D7332"],
     },
   ];
   vi.stubGlobal(

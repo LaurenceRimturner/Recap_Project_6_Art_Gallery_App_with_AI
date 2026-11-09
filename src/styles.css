@@ -329,10 +329,15 @@ nav a.active {
   color: var(--ink);
 }
 
+.details .color-palette {
+  grid-column: 9 / -1;
+}
+
 @media (max-width: 900px) {
   .details img,
   .details h2,
-  .details p {
+  .details p,
+  .details .color-palette {
     grid-column: 1 / -1;
     grid-row: auto;
   }
@@ -360,6 +365,27 @@ nav a.active {
 }
 
 /* ---------- Comments ---------- */
+
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--unit) * 2);
+  margin: calc(var(--unit) * 2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.palette li {
+  display: flex;
+  gap: var(--unit);
+  align-items: center;
+}
+
+.swatch {
+  width: calc(var(--unit) * 4);
+  height: calc(var(--unit) * 4);
+  border: 1px solid var(--rule);
+}
 
 .comments {
   margin: calc(var(--unit) * 2) 0 0;
