@@ -97,9 +97,7 @@ figcaption,
 time {
   font-size: 0.875rem;
   line-height: 1.5;
-  padding-top: var(--unit);
-  border-top: 1px solid var(--ink);
-  color: var(--ink);
+  color: var(--muted);
 }
 
 /* ---------- Navigation: right-hand rail ---------- */
@@ -176,25 +174,19 @@ nav a.active {
   }
 }
 
-/* ---------- Gallery: 12-col grid, 4 / 3 / 2 / 1 across ---------- */
+/* ---------- Gallery: 12-col grid, 2 / 1 across ---------- */
 
 .art-list {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: calc(var(--unit) * 6) var(--gutter);
-  margin: calc(var(--unit) * 4) 0 0;
+  gap: calc(var(--unit) * 10) calc(var(--unit) * 6);
+  margin: calc(var(--unit) * 6) 0 0;
   padding: 0;
   list-style: none;
 }
 
 .art-list > li {
-  grid-column: span 4;
-}
-
-@media (max-width: 1200px) {
-  .art-list > li {
-    grid-column: span 6;
-  }
+  grid-column: span 6;
 }
 
 @media (max-width: 640px) {
@@ -210,7 +202,7 @@ nav a.active {
 
 .art-piece figure {
   display: grid;
-  gap: var(--unit);
+  gap: calc(var(--unit) * 2);
   margin: 0;
 }
 
@@ -227,8 +219,14 @@ nav a.active {
   opacity: 0.85;
 }
 
+/* title and artist share one style, in the gallery and the spotlight */
 .art-piece figcaption {
-  color: var(--muted);
+  padding-top: var(--unit);
+  border-top: 1px solid var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 /* ---------- Spotlight: image spans 8 of 12 columns ---------- */
@@ -241,12 +239,6 @@ nav a.active {
 .spotlight img {
   aspect-ratio: 4 / 5;
   max-height: 75vh;
-}
-
-.spotlight figcaption {
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
 }
 
 @media (max-width: 900px) {
