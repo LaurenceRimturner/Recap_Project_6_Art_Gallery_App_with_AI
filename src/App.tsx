@@ -7,6 +7,8 @@ import ArtPieces from "./components/ArtPieces";
 import Navigation from "./components/Navigation";
 import Spotlight from "./components/Spotlight";
 import { fetcher } from "./fetcher";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/700.css";
 import "./styles.css";
 import type { ArtPiece, ArtPieceComment, ArtPieceInfo } from "./types";
 
