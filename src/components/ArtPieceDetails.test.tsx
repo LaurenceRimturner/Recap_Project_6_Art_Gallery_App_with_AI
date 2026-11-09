@@ -12,6 +12,7 @@ const piece: ArtPiece = {
   imageSource: "https://example.com/orange.jpg",
   year: "1955",
   genre: "Abstract Expressionism",
+  colors: ["#37412E", "#8D7332"],
 };
 
 function renderDetails() {
@@ -59,6 +60,15 @@ test("shows the genre", () => {
   renderDetails();
 
   expect(screen.getByText(piece.genre, { exact: false })).toBeInTheDocument();
+});
+
+test("shows the color palette", () => {
+  renderDetails();
+
+  expect(screen.getByRole("heading", { name: "Colors" })).toBeInTheDocument();
+  piece.colors.forEach((color) => {
+    expect(screen.getByText(color)).toBeInTheDocument();
+  });
 });
 
 test("shows a back link", () => {

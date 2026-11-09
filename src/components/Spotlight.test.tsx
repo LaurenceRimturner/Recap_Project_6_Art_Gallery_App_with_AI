@@ -12,6 +12,7 @@ const pieces: ArtPiece[] = [
     imageSource: "https://example.com/orange.jpg",
     year: "1955",
     genre: "Abstract Expressionism",
+    colors: ["#37412E", "#8D7332"],
   },
   {
     slug: "wheat-field",
@@ -20,6 +21,7 @@ const pieces: ArtPiece[] = [
     imageSource: "https://example.com/wheat.jpg",
     year: "1888",
     genre: "Post-Impressionism",
+    colors: ["#37412E", "#8D7332"],
   },
 ];
 

@@ -12,6 +12,7 @@ const piece: ArtPiece = {
   imageSource: "https://example.com/orange.jpg",
   year: "1955",
   genre: "Abstract Expressionism",
+  colors: ["#37412E", "#8D7332"],
 };
 
 test("shows the image", () => {
