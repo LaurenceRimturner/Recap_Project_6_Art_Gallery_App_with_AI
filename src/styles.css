@@ -824,6 +824,20 @@ button {
   flex: 1 1 12rem;
 }
 
+.filters > .filter-custom {
+  display: flex;
+  gap: var(--unit);
+  align-items: center;
+  cursor: pointer;
+}
+
+.filter-custom input {
+  width: calc(var(--unit) * 2.5);
+  height: calc(var(--unit) * 2.5);
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 .filter-genre {
   flex: 0 1 12rem;
 }

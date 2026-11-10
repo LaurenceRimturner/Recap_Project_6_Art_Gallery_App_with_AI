@@ -20,10 +20,18 @@ export default function Gallery({
   const [search, setSearch] = useState("");
   const [family, setFamily] = useState<ColorFamily | null>(null);
   const [genre, setGenre] = useState("");
+  const [onlyCustom, setOnlyCustom] = useState(false);
 
   const genres = [...new Set(pieces.map((piece) => piece.genre))].sort();
-  const visiblePieces = filterPieces(pieces, { search, family, genre });
-  const hasActiveFilter = search !== "" || family !== null || genre !== "";
+  const visiblePieces = filterPieces(pieces, {
+    search,
+    family,
+    genre,
+    onlyCustom,
+  });
+  const hasCustomPieces = pieces.some((piece) => piece.isCustom);
+  const hasActiveFilter =
+    search !== "" || family !== null || genre !== "" || onlyCustom;
 
   function toggleFamily(toggled: ColorFamily) {
     setFamily((current) => (current === toggled ? null : toggled));
@@ -33,6 +41,7 @@ export default function Gallery({
     setSearch("");
     setFamily(null);
     setGenre("");
+    setOnlyCustom(false);
   }
 
   return (
@@ -60,6 +69,16 @@ export default function Gallery({
             ))}
           </select>
         </label>
+        {hasCustomPieces && (
+          <label className="filter-custom">
+            <input
+              type="checkbox"
+              checked={onlyCustom}
+              onChange={(event) => setOnlyCustom(event.target.checked)}
+            />
+            Only my art pieces
+          </label>
+        )}
         <button
           type="button"
           onClick={clearFilters}

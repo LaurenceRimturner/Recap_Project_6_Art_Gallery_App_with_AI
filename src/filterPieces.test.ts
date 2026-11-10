@@ -89,3 +89,47 @@ test("matches the artist case-insensitively", () => {
     "starry-night",
   ]);
 });
+
+const withCustom: ArtPiece[] = [
+  ...pieces,
+  {
+    slug: "own-sunrise",
+    artist: "Me",
+    name: "Sunrise",
+    imageSource: "https://example.com/sunrise.jpg",
+    year: "2024",
+    genre: "Post-Impressionism",
+    colors: [],
+    isCustom: true,
+  },
+];
+
+test("keeps only custom pieces when onlyCustom is set", () => {
+  const result = filterPieces(withCustom, { ...noFilters, onlyCustom: true });
+
+  expect(result.map((piece) => piece.slug)).toEqual(["own-sunrise"]);
+});
+
+test("keeps all pieces when onlyCustom is off or missing", () => {
+  expect(filterPieces(withCustom, { ...noFilters, onlyCustom: false })).toEqual(
+    withCustom
+  );
+  expect(filterPieces(withCustom, noFilters)).toEqual(withCustom);
+});
+
+test("combines onlyCustom with the other filters", () => {
+  expect(
+    filterPieces(withCustom, {
+      ...noFilters,
+      onlyCustom: true,
+      genre: "Abstract Expressionism",
+    })
+  ).toEqual([]);
+  expect(
+    filterPieces(withCustom, {
+      ...noFilters,
+      onlyCustom: true,
+      search: "sunr",
+    }).map((piece) => piece.slug)
+  ).toEqual(["own-sunrise"]);
+});
