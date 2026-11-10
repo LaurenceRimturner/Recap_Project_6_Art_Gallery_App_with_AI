@@ -39,6 +39,7 @@ export default function ArtPieceDetails({
       <p>Genre: {piece.genre}</p>
       <ColorPalette colors={piece.colors} />
       <Comments
+        key={piece.slug}
         comments={comments}
         onEditComment={onEditComment}
         onDeleteComment={onDeleteComment}
