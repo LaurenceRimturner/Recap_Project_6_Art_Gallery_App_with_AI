@@ -1,8 +1,9 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { Route, Routes, useParams } from "react-router";
+import { Route, Routes, useNavigate, useParams } from "react-router";
 import useSWR from "swr";
 
 import ArtPieceDetails from "./components/ArtPieceDetails";
+import ArtPieceModal, { type ArtPieceValues } from "./components/ArtPieceModal";
 import ArtPieces from "./components/ArtPieces";
 import Gallery from "./components/Gallery";
 import Navigation from "./components/Navigation";
@@ -15,6 +16,7 @@ import type { ArtPiece, ArtPieceComment, ArtPieceInfo } from "./types";
 
 const ART_API_URL = "https://example-apis.vercel.app/api/art";
 const STORAGE_KEY = "art-pieces-info";
+const OWN_PIECES_KEY = "own-art-pieces";
 
 type ArtPieceRouteProps = {
   pieces: ArtPiece[];
@@ -24,6 +26,9 @@ type ArtPieceRouteProps = {
   onAddComment: (slug: string, text: string) => void;
   onEditComment: (slug: string, date: string, text: string) => void;
   onDeleteComment: (slug: string, date: string) => void;
+  isOwnPiece: (slug: string) => boolean;
+  onEditPiece: (slug: string) => void;
+  onDeletePiece: (slug: string) => void;
 };
 
 function ArtPieceRoute({
@@ -34,8 +39,12 @@ function ArtPieceRoute({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  isOwnPiece,
+  onEditPiece,
+  onDeletePiece,
 }: ArtPieceRouteProps) {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const piece = pieces.find((candidate) => candidate.slug === slug);
 
   if (!piece) return <p>Art piece not found</p>;
@@ -48,6 +57,17 @@ function ArtPieceRoute({
       onAddComment={(text) => onAddComment(piece.slug, text)}
       onEditComment={(date, text) => onEditComment(piece.slug, date, text)}
       onDeleteComment={(date) => onDeleteComment(piece.slug, date)}
+      onEdit={
+        isOwnPiece(piece.slug) ? () => onEditPiece(piece.slug) : undefined
+      }
+      onDelete={
+        isOwnPiece(piece.slug)
+          ? () => {
+              onDeletePiece(piece.slug);
+              navigate("/art-pieces");
+            }
+          : undefined
+      }
     />
   );
 }
@@ -63,14 +83,64 @@ function loadArtPiecesInfo(): ArtPieceInfo[] {
   }
 }
 
+function loadOwnPieces(): ArtPiece[] {
+  try {
+    const stored: unknown = JSON.parse(
+      localStorage.getItem(OWN_PIECES_KEY) ?? "[]"
+    );
+    return Array.isArray(stored) ? (stored as ArtPiece[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export default function App() {
   const { data, error } = useSWR<ArtPiece[]>(ART_API_URL, fetcher);
   const [artPiecesInfo, setArtPiecesInfo] =
     useState<ArtPieceInfo[]>(loadArtPiecesInfo);
 
+  const [ownPieces, setOwnPieces] = useState<ArtPiece[]>(loadOwnPieces);
+  // null = closed, empty object = adding, slug = editing that piece
+  const [modal, setModal] = useState<{ slug?: string } | null>(null);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(artPiecesInfo));
   }, [artPiecesInfo]);
+
+  useEffect(() => {
+    localStorage.setItem(OWN_PIECES_KEY, JSON.stringify(ownPieces));
+  }, [ownPieces]);
+
+  function isOwnPiece(slug: string) {
+    return ownPieces.some((piece) => piece.slug === slug);
+  }
+
+  function savePiece(values: ArtPieceValues) {
+    const editingSlug = modal?.slug;
+    if (editingSlug) {
+      setOwnPieces((current) =>
+        current.map((piece) =>
+          piece.slug === editingSlug ? { ...piece, ...values } : piece
+        )
+      );
+    } else {
+      const slug = `own-${slugify(values.name)}-${Date.now()}`;
+      setOwnPieces((current) => [{ slug, ...values, colors: [] }, ...current]);
+    }
+    setModal(null);
+  }
+
+  function deletePiece(slug: string) {
+    setOwnPieces((current) => current.filter((piece) => piece.slug !== slug));
+    setArtPiecesInfo((current) => current.filter((info) => info.slug !== slug));
+  }
 
   function isFavorite(slug: string) {
     return artPiecesInfo.some((info) => info.slug === slug && info.isFavorite);
@@ -133,7 +203,7 @@ export default function App() {
   function renderWithPieces(render: (pieces: ArtPiece[]) => ReactNode) {
     if (error) return <p>Failed to load art pieces.</p>;
     if (!data) return <p>Loading...</p>;
-    return render(data);
+    return render([...ownPieces, ...data]);
   }
 
   return (
@@ -172,6 +242,9 @@ export default function App() {
                 onAddComment={addComment}
                 onEditComment={editComment}
                 onDeleteComment={deleteComment}
+                isOwnPiece={isOwnPiece}
+                onEditPiece={(slug) => setModal({ slug })}
+                onDeletePiece={deletePiece}
               />
             ))}
           />
@@ -188,7 +261,15 @@ export default function App() {
           <Route path="*" element={<p>Page not found</p>} />
         </Routes>
       </main>
-      <Navigation />
+      <Navigation onAddClick={() => setModal({})} />
+      {modal && (
+        <ArtPieceModal
+          key={modal.slug ?? "new"}
+          piece={ownPieces.find((piece) => piece.slug === modal.slug)}
+          onSave={savePiece}
+          onClose={() => setModal(null)}
+        />
+      )}
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
 import type { ArtPiece, ArtPieceComment } from "../types";
@@ -15,6 +16,8 @@ type ArtPieceDetailsProps = {
   onAddComment: (text: string) => void;
   onEditComment: (date: string, text: string) => void;
   onDeleteComment: (date: string) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 export default function ArtPieceDetails({
@@ -25,7 +28,10 @@ export default function ArtPieceDetails({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  onEdit,
+  onDelete,
 }: ArtPieceDetailsProps) {
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const article = useReveal<HTMLElement>(".details > :not(.favorite-button)");
 
   return (
@@ -37,6 +43,31 @@ export default function ArtPieceDetails({
       <p>Artist: {piece.artist}</p>
       <p>Year: {piece.year}</p>
       <p>Genre: {piece.genre}</p>
+      {onEdit && onDelete && (
+        <div className="piece-actions">
+          <button type="button" onClick={onEdit}>
+            Edit art piece
+          </button>
+          {confirmingDelete ? (
+            <>
+              <button type="button" className="danger" onClick={onDelete}>
+                Confirm delete art piece
+              </button>
+              <button type="button" onClick={() => setConfirmingDelete(false)}>
+                Keep art piece
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="danger"
+              onClick={() => setConfirmingDelete(true)}
+            >
+              Delete art piece
+            </button>
+          )}
+        </div>
+      )}
       <ColorPalette colors={piece.colors} />
       <Comments
         key={piece.slug}

@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 
 import Navigation from "./Navigation";
@@ -70,4 +71,25 @@ test("shows exactly three links inside the navigation", () => {
 
   const nav = screen.getByRole("navigation");
   expect(within(nav).getAllByRole("link")).toHaveLength(3);
+});
+
+test("shows an Add art piece button, not a link", () => {
+  renderNavigation();
+
+  expect(
+    screen.getByRole("button", { name: "Add art piece" })
+  ).toBeInTheDocument();
+});
+
+test("calls onAddClick when the Add art piece button is clicked", async () => {
+  const onAddClick = vi.fn();
+  render(
+    <MemoryRouter>
+      <Navigation onAddClick={onAddClick} />
+    </MemoryRouter>
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: "Add art piece" }));
+
+  expect(onAddClick).toHaveBeenCalledTimes(1);
 });

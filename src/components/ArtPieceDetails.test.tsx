@@ -239,3 +239,118 @@ test("does not fade in the comments of another art piece shown in the same view"
     "fade-in"
   );
 });
+
+test("shows Edit and Delete only when the handlers are given", () => {
+  const { unmount } = renderDetails();
+  expect(
+    screen.queryByRole("button", { name: "Edit art piece" })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Delete art piece" })
+  ).not.toBeInTheDocument();
+  unmount();
+
+  render(
+    <MemoryRouter>
+      <ArtPieceDetails
+        piece={piece}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+        comments={[]}
+        onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
+        onEdit={() => {}}
+        onDelete={() => {}}
+      />
+    </MemoryRouter>
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Edit art piece" })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Delete art piece" })
+  ).toBeInTheDocument();
+});
+
+test("calls onEdit when Edit art piece is clicked", async () => {
+  const onEdit = vi.fn();
+  render(
+    <MemoryRouter>
+      <ArtPieceDetails
+        piece={piece}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+        comments={[]}
+        onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
+        onEdit={onEdit}
+        onDelete={() => {}}
+      />
+    </MemoryRouter>
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: "Edit art piece" }));
+
+  expect(onEdit).toHaveBeenCalledTimes(1);
+});
+
+test("asks for confirmation before deleting the art piece", async () => {
+  const onDelete = vi.fn();
+  render(
+    <MemoryRouter>
+      <ArtPieceDetails
+        piece={piece}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+        comments={[]}
+        onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
+        onEdit={() => {}}
+        onDelete={onDelete}
+      />
+    </MemoryRouter>
+  );
+
+  await userEvent.click(
+    screen.getByRole("button", { name: "Delete art piece" })
+  );
+  expect(onDelete).not.toHaveBeenCalled();
+
+  await userEvent.click(screen.getByRole("button", { name: "Keep art piece" }));
+  expect(onDelete).not.toHaveBeenCalled();
+  expect(
+    screen.getByRole("button", { name: "Delete art piece" })
+  ).toBeInTheDocument();
+
+  await userEvent.click(
+    screen.getByRole("button", { name: "Delete art piece" })
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Confirm delete art piece" })
+  );
+  expect(onDelete).toHaveBeenCalledTimes(1);
+});
+
+test("hides the Colors heading for a piece without colors", () => {
+  render(
+    <MemoryRouter>
+      <ArtPieceDetails
+        piece={{ ...piece, colors: [] }}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+        comments={[]}
+        onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
+      />
+    </MemoryRouter>
+  );
+
+  expect(
+    screen.queryByRole("heading", { name: "Colors" })
+  ).not.toBeInTheDocument();
+});

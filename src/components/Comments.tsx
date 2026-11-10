@@ -60,7 +60,7 @@ function CommentItem({ comment, isNew, onEdit, onDelete }: CommentItemProps) {
           <div className="comment-actions">
             {mode === "confirm-delete" ? (
               <>
-                <button type="button" onClick={onDelete}>
+                <button type="button" className="danger" onClick={onDelete}>
                   Confirm delete
                 </button>
                 <button type="button" onClick={() => setMode("view")}>
@@ -72,7 +72,11 @@ function CommentItem({ comment, isNew, onEdit, onDelete }: CommentItemProps) {
                 <button type="button" onClick={startEditing}>
                   Edit
                 </button>
-                <button type="button" onClick={() => setMode("confirm-delete")}>
+                <button
+                  type="button"
+                  className="danger"
+                  onClick={() => setMode("confirm-delete")}
+                >
                   Delete
                 </button>
               </>

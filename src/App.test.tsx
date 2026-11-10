@@ -838,3 +838,290 @@ test("deletes a comment and removes it from localStorage", async () => {
   ]);
   expect(stored[1].comments).toHaveLength(1);
 });
+
+const OWN_STORAGE_KEY = "own-art-pieces";
+
+const ownPiece: ArtPiece = {
+  slug: "own-sunrise-1",
+  artist: "Me",
+  name: "Sunrise",
+  imageSource: "https://example.com/sunrise.jpg",
+  year: "2024",
+  genre: "Impressionism",
+  colors: [],
+};
+
+function stubApi() {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+}
+
+async function addOwnPiece(overrides: Record<string, string> = {}) {
+  await userEvent.click(screen.getByRole("button", { name: "Add art piece" }));
+  const dialog = screen.getByRole("dialog");
+  const values = {
+    "Image URL": ownPiece.imageSource,
+    Name: ownPiece.name,
+    Artist: ownPiece.artist,
+    Genre: ownPiece.genre,
+    Year: ownPiece.year,
+    ...overrides,
+  };
+  for (const [label, value] of Object.entries(values)) {
+    await userEvent.type(within(dialog).getByLabelText(label), value);
+  }
+  await userEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+}
+
+function storedOwnPieces() {
+  return JSON.parse(localStorage.getItem(OWN_STORAGE_KEY) ?? "null");
+}
+
+test("opens the add modal from the navigation", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+
+  await userEvent.click(screen.getByRole("button", { name: "Add art piece" }));
+
+  expect(
+    within(screen.getByRole("dialog")).getByRole("heading", {
+      name: "Add art piece",
+    })
+  ).toBeInTheDocument();
+});
+
+test("adds a piece, closes the modal and clears the form", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+  await screen.findByRole("img", { name: pieces[0].name });
+
+  await addOwnPiece();
+
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByRole("img", { name: "Sunrise" })).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: "Add art piece" }));
+  expect(screen.getByLabelText("Name")).toHaveValue("");
+});
+
+test("saves nothing when the modal is closed", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+
+  await userEvent.click(screen.getByRole("button", { name: "Add art piece" }));
+  await userEvent.type(screen.getByLabelText("Name"), "Unsaved");
+  await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(storedOwnPieces()).toEqual([]);
+});
+
+test("shows an added piece in the gallery and on its detail page", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+  await screen.findByRole("img", { name: pieces[0].name });
+
+  await addOwnPiece();
+  await userEvent.click(screen.getByRole("link", { name: /Sunrise/ }));
+
+  expect(
+    await screen.findByRole("heading", { name: "Sunrise" })
+  ).toBeInTheDocument();
+  expect(screen.getByText("Artist: Me")).toBeInTheDocument();
+  expect(screen.getByText("Year: 2024")).toBeInTheDocument();
+  expect(screen.getByText("Genre: Impressionism")).toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", { name: "Colors" })
+  ).not.toBeInTheDocument();
+});
+
+test("finds an added piece by search and genre", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+  await screen.findByRole("img", { name: pieces[0].name });
+  await addOwnPiece();
+
+  await userEvent.type(
+    screen.getByLabelText("Search by name or artist"),
+    "sunr"
+  );
+  expect(screen.getByRole("img", { name: "Sunrise" })).toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: pieces[0].name })
+  ).not.toBeInTheDocument();
+
+  await userEvent.clear(screen.getByLabelText("Search by name or artist"));
+  await userEvent.selectOptions(
+    screen.getByLabelText("Genre"),
+    "Impressionism"
+  );
+  expect(screen.getByRole("img", { name: "Sunrise" })).toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: pieces[1].name })
+  ).not.toBeInTheDocument();
+});
+
+test("favorites and comments an added piece", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+  await screen.findByRole("img", { name: pieces[0].name });
+  await addOwnPiece();
+  await userEvent.click(screen.getByRole("link", { name: /Sunrise/ }));
+
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Add to favorites" })
+  );
+  await userEvent.type(screen.getByLabelText("Add a comment"), "Warm");
+  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  expect(
+    await screen.findByRole("img", { name: "Sunrise" })
+  ).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("link", { name: /Sunrise/ }));
+  expect(await screen.findByText("Warm")).toBeInTheDocument();
+});
+
+test("restores own pieces from localStorage on load", async () => {
+  localStorage.setItem(OWN_STORAGE_KEY, JSON.stringify([ownPiece]));
+  stubApi();
+
+  renderApp("/art-pieces");
+
+  expect(
+    await screen.findByRole("img", { name: "Sunrise" })
+  ).toBeInTheDocument();
+});
+
+test("saves an added piece to localStorage", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+  await screen.findByRole("img", { name: pieces[0].name });
+
+  await addOwnPiece();
+
+  const stored = storedOwnPieces();
+  expect(stored).toHaveLength(1);
+  expect(stored[0]).toMatchObject({
+    name: "Sunrise",
+    artist: "Me",
+    genre: "Impressionism",
+    year: "2024",
+    imageSource: ownPiece.imageSource,
+    colors: [],
+  });
+  expect(stored[0].slug).toMatch(/^own-/);
+});
+
+test.each(["{oops", "{}"])(
+  "ignores invalid stored own pieces (%s)",
+  async (invalid) => {
+    localStorage.setItem(OWN_STORAGE_KEY, invalid);
+    stubApi();
+
+    renderApp("/art-pieces");
+
+    expect(
+      await screen.findByRole("img", { name: pieces[0].name })
+    ).toBeInTheDocument();
+  }
+);
+
+test("API pieces have no Edit or Delete art piece buttons", async () => {
+  stubApi();
+  renderApp("/art-pieces/wheat-field");
+
+  await screen.findByRole("heading", { name: "Wheat Field" });
+
+  expect(
+    screen.queryByRole("button", { name: "Edit art piece" })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Delete art piece" })
+  ).not.toBeInTheDocument();
+});
+
+test("edits an own piece and keeps its favorite and comments", async () => {
+  localStorage.setItem(OWN_STORAGE_KEY, JSON.stringify([ownPiece]));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([
+      {
+        slug: ownPiece.slug,
+        isFavorite: true,
+        comments: [{ text: "Warm", date: "2026-01-01T00:00:00.000Z" }],
+      },
+    ])
+  );
+  stubApi();
+  renderApp(`/art-pieces/${ownPiece.slug}`);
+
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Edit art piece" })
+  );
+  const dialog = screen.getByRole("dialog");
+  expect(within(dialog).getByLabelText("Name")).toHaveValue("Sunrise");
+
+  await userEvent.clear(within(dialog).getByLabelText("Name"));
+  await userEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+  expect(screen.getByText("Name is required.")).toBeInTheDocument();
+
+  await userEvent.type(within(dialog).getByLabelText("Name"), "Sunset");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Sunset" })).toBeInTheDocument();
+  expect(screen.getByText("Warm")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Remove from favorites" })
+  ).toBeInTheDocument();
+  expect(storedOwnPieces()[0]).toMatchObject({
+    slug: ownPiece.slug,
+    name: "Sunset",
+  });
+});
+
+test("deletes an own piece after confirmation and removes its favorite and comments", async () => {
+  localStorage.setItem(OWN_STORAGE_KEY, JSON.stringify([ownPiece]));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([
+      {
+        slug: ownPiece.slug,
+        isFavorite: true,
+        comments: [{ text: "Warm", date: "2026-01-01T00:00:00.000Z" }],
+      },
+      { slug: "wheat-field", isFavorite: true, comments: [] },
+    ])
+  );
+  stubApi();
+  renderApp(`/art-pieces/${ownPiece.slug}`);
+
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Delete art piece" })
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Keep art piece" }));
+  expect(screen.getByRole("heading", { name: "Sunrise" })).toBeInTheDocument();
+
+  await userEvent.click(
+    screen.getByRole("button", { name: "Delete art piece" })
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Confirm delete art piece" })
+  );
+
+  expect(
+    await screen.findByLabelText("Search by name or artist")
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: "Sunrise" })
+  ).not.toBeInTheDocument();
+  expect(storedOwnPieces()).toEqual([]);
+  const info = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+  expect(info).toEqual([
+    { slug: "wheat-field", isFavorite: true, comments: [] },
+  ]);
+});

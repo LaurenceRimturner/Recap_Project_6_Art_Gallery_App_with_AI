@@ -38,3 +38,11 @@ test("shows a list item for each color even when a color repeats", () => {
   expect(consoleError).not.toHaveBeenCalled();
   consoleError.mockRestore();
 });
+
+test("renders nothing without colors", () => {
+  render(<ColorPalette colors={[]} />);
+
+  expect(
+    screen.queryByRole("heading", { name: "Colors" })
+  ).not.toBeInTheDocument();
+});
