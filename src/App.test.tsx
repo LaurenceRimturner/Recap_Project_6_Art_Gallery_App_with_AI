@@ -1125,3 +1125,25 @@ test("deletes an own piece after confirmation and removes its favorite and comme
     { slug: "wheat-field", isFavorite: true, comments: [] },
   ]);
 });
+
+test("marks own pieces with an Added by you badge on every page", async () => {
+  localStorage.setItem(OWN_STORAGE_KEY, JSON.stringify([ownPiece]));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([{ slug: ownPiece.slug, isFavorite: true, comments: [] }])
+  );
+  stubApi();
+  renderApp("/art-pieces");
+
+  await screen.findByRole("img", { name: pieces[0].name });
+  expect(screen.getAllByText("Added by you")).toHaveLength(1);
+
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+  expect(await screen.findAllByText("Added by you")).toHaveLength(1);
+
+  await userEvent.click(screen.getByRole("link", { name: /Sunrise/ }));
+  expect(
+    await screen.findByRole("heading", { name: "Sunrise" })
+  ).toBeInTheDocument();
+  expect(screen.getAllByText("Added by you")).toHaveLength(1);
+});

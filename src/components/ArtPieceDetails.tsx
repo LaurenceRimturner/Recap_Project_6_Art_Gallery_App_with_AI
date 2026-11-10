@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import type { ArtPiece, ArtPieceComment } from "../types";
 import useReveal from "../useReveal";
 import ColorPalette from "./ColorPalette";
+import CustomBadge from "./CustomBadge";
 import CommentForm from "./CommentForm";
 import Comments from "./Comments";
 import FavoriteButton from "./FavoriteButton";
@@ -40,6 +41,7 @@ export default function ArtPieceDetails({
       <img src={piece.imageSource} alt={piece.name} />
       <FavoriteButton isFavorite={isFavorite} onToggle={onToggleFavorite} />
       <h2>{piece.name}</h2>
+      {piece.isCustom && <CustomBadge />}
       <p>Artist: {piece.artist}</p>
       <p>Year: {piece.year}</p>
       <p>Genre: {piece.genre}</p>

@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 
 import type { ArtPiece } from "../types";
+import CustomBadge from "./CustomBadge";
 import FavoriteButton from "./FavoriteButton";
 
 type ArtPiecePreviewProps = {
@@ -24,6 +25,7 @@ export default function ArtPiecePreview({
           </figcaption>
         </figure>
       </Link>
+      {piece.isCustom && <CustomBadge />}
       <FavoriteButton isFavorite={isFavorite} onToggle={onToggleFavorite} />
     </>
   );

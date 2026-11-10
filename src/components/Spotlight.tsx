@@ -3,6 +3,7 @@ import { Link } from "react-router";
 
 import { pickRandom } from "../pickRandom";
 import type { ArtPiece } from "../types";
+import CustomBadge from "./CustomBadge";
 import FavoriteButton from "./FavoriteButton";
 
 type SpotlightProps = {
@@ -32,6 +33,7 @@ export default function Spotlight({
           </figcaption>
         </figure>
       </Link>
+      {piece.isCustom && <CustomBadge />}
       <FavoriteButton
         isFavorite={isFavorite(piece.slug)}
         onToggle={() => onToggleFavorite(piece.slug)}

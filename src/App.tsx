@@ -203,7 +203,8 @@ export default function App() {
   function renderWithPieces(render: (pieces: ArtPiece[]) => ReactNode) {
     if (error) return <p>Failed to load art pieces.</p>;
     if (!data) return <p>Loading...</p>;
-    return render([...ownPieces, ...data]);
+    const custom = ownPieces.map((piece) => ({ ...piece, isCustom: true }));
+    return render([...custom, ...data]);
   }
 
   return (

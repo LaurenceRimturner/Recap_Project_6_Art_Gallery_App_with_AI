@@ -354,3 +354,29 @@ test("hides the Colors heading for a piece without colors", () => {
     screen.queryByRole("heading", { name: "Colors" })
   ).not.toBeInTheDocument();
 });
+
+test("shows an Added by you badge only for custom pieces", () => {
+  const props = {
+    isFavorite: false,
+    onToggleFavorite: () => {},
+    comments: [],
+    onAddComment: () => {},
+    onEditComment: () => {},
+    onDeleteComment: () => {},
+  };
+  const { rerender } = render(
+    <MemoryRouter>
+      <ArtPieceDetails piece={{ ...piece, isCustom: true }} {...props} />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByText("Added by you")).toBeInTheDocument();
+
+  rerender(
+    <MemoryRouter>
+      <ArtPieceDetails piece={piece} {...props} />
+    </MemoryRouter>
+  );
+
+  expect(screen.queryByText("Added by you")).not.toBeInTheDocument();
+});
