@@ -4,7 +4,7 @@
   - content / sidebar split is 8 : 5, the Fibonacci step closest to phi
   - type scale multiplies by phi: 1, 1.618, 2.618, 4.236rem
   - spacing uses Fibonacci multiples of the unit: 1, 2, 3, 5, 8, 13
-  - gallery images are phi-rectangles (1 : 1.618)
+  - gallery images are 4 : 5 portraits, 2 / 1 across
   - one typeface, two weights, flush-left / ragged-right
   - ink on paper, one accent
 */
@@ -141,16 +141,10 @@ nav a {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition:
-    color var(--duration) var(--ease),
-    border-top-width var(--duration) var(--ease),
-    padding-top var(--duration) var(--ease);
 }
 
 nav a:hover {
   color: var(--accent);
-  border-top-width: 3px;
-  padding-top: calc(var(--unit) - 2px);
 }
 
 nav a.active {
@@ -183,7 +177,6 @@ nav a.active {
   }
 
   nav a,
-  nav a:hover,
   nav a.active {
     padding: var(--unit) 0;
     border-top: 0;
@@ -229,7 +222,7 @@ nav a.active {
 .art-piece img {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / var(--phi);
+  aspect-ratio: 4 / 5;
   object-fit: cover;
   background: var(--rule);
   transition: opacity var(--duration) var(--ease);
@@ -249,27 +242,32 @@ nav a.active {
   color: var(--ink);
 }
 
-/* ---------- Spotlight: image spans 8 of 13 columns (8 : 5) ---------- */
+/* ---------- Spotlight: centered on the grid, 3 | 7 | 3 of 13 columns ---------- */
 
+/* three columns each side keep the focus piece symmetric on the grid */
 .spotlight {
-  grid-column: 1 / span 8;
-  margin-top: calc(var(--unit) * 4);
+  grid-column: 4 / span 7;
+  justify-self: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: calc(var(--unit) * 8);
 }
 
-/* full width, or full height when the piece is taller than the viewport */
+/* the image keeps its own proportions, up to the column width or 75vh */
 .spotlight img {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: auto;
   max-height: 75vh;
   aspect-ratio: auto;
   object-fit: contain;
-  object-position: left top;
   background: transparent;
 }
 
 @media (max-width: 900px) {
   .spotlight {
     grid-column: 1 / -1;
+    margin-top: calc(var(--unit) * 4);
   }
 }
 

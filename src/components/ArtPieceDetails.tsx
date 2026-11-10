@@ -22,9 +22,7 @@ export default function ArtPieceDetails({
   comments,
   onAddComment,
 }: ArtPieceDetailsProps) {
-  const article = useReveal<HTMLElement>(
-    ".details > :not(.favorite-button)",
-  );
+  const article = useReveal<HTMLElement>(".details > :not(.favorite-button)");
 
   return (
     <article className="details" ref={article}>

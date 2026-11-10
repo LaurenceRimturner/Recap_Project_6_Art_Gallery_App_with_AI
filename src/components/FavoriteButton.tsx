@@ -25,10 +25,10 @@ export default function FavoriteButton({
       gsap.fromTo(
         icon.current,
         { scale: 0.7 },
-        { scale: 1, duration: 0.5, ease: "back.out(3)", clearProps: "all" },
+        { scale: 1, duration: 0.5, ease: "back.out(3)", clearProps: "all" }
       );
     },
-    { dependencies: [isFavorite] },
+    { dependencies: [isFavorite] }
   );
 
   return (
@@ -40,10 +40,7 @@ export default function FavoriteButton({
       onClick={onToggle}
     >
       <span ref={icon} className="favorite-icon">
-        <Heart
-          fill={isFavorite ? "currentColor" : "none"}
-          aria-hidden="true"
-        />
+        <Heart fill={isFavorite ? "currentColor" : "none"} aria-hidden="true" />
       </span>
     </button>
   );

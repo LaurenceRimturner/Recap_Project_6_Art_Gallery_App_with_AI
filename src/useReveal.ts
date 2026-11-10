@@ -24,7 +24,7 @@ export default function useReveal<T extends HTMLElement>(selector: string) {
         clearProps: "all",
       });
     },
-    { scope },
+    { scope }
   );
 
   return scope;
