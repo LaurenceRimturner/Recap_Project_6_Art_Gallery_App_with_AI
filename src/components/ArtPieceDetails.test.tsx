@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 
@@ -24,6 +24,8 @@ function renderDetails() {
         onToggleFavorite={() => {}}
         comments={[]}
         onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
       />
     </MemoryRouter>
   );
@@ -97,6 +99,8 @@ test("shows a favorite as pressed", () => {
         onToggleFavorite={() => {}}
         comments={[]}
         onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
       />
     </MemoryRouter>
   );
@@ -116,6 +120,8 @@ test("calls onToggleFavorite when the favorite button is clicked", async () => {
         onToggleFavorite={onToggleFavorite}
         comments={[]}
         onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
       />
     </MemoryRouter>
   );
@@ -134,6 +140,8 @@ test("shows the comments of the art piece", () => {
         onToggleFavorite={() => {}}
         comments={[{ text: "Lovely colors", date: "2025-03-01T09:15:00.000Z" }]}
         onAddComment={() => {}}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
       />
     </MemoryRouter>
   );
@@ -152,6 +160,8 @@ test("calls onAddComment when a comment is submitted", async () => {
         onToggleFavorite={() => {}}
         comments={[]}
         onAddComment={onAddComment}
+        onEditComment={() => {}}
+        onDeleteComment={() => {}}
       />
     </MemoryRouter>
   );
@@ -160,4 +170,43 @@ test("calls onAddComment when a comment is submitted", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
 
   expect(onAddComment).toHaveBeenCalledWith("Lovely colors");
+});
+
+test("shows the comments in their own section with the form inside it", () => {
+  renderDetails();
+
+  const section = screen
+    .getByRole("heading", { name: "Comments" })
+    .closest("section") as HTMLElement;
+
+  expect(section).toHaveClass("comment-section");
+  expect(within(section).getByRole("textbox")).toBeInTheDocument();
+});
+
+test("passes edit and delete of a comment on", async () => {
+  const onEditComment = vi.fn();
+  const onDeleteComment = vi.fn();
+  const date = "2025-03-01T09:15:00.000Z";
+  render(
+    <MemoryRouter>
+      <ArtPieceDetails
+        piece={piece}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+        comments={[{ text: "Lovely colors", date }]}
+        onAddComment={() => {}}
+        onEditComment={onEditComment}
+        onDeleteComment={onDeleteComment}
+      />
+    </MemoryRouter>
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+  await userEvent.type(screen.getByLabelText("Edit comment"), "!");
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+  await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+  await userEvent.click(screen.getByRole("button", { name: "Confirm delete" }));
+
+  expect(onEditComment).toHaveBeenCalledWith(date, "Lovely colors!");
+  expect(onDeleteComment).toHaveBeenCalledWith(date);
 });

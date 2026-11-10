@@ -22,6 +22,8 @@ type ArtPieceRouteProps = {
   onToggleFavorite: (slug: string) => void;
   getComments: (slug: string) => ArtPieceComment[];
   onAddComment: (slug: string, text: string) => void;
+  onEditComment: (slug: string, date: string, text: string) => void;
+  onDeleteComment: (slug: string, date: string) => void;
 };
 
 function ArtPieceRoute({
@@ -30,6 +32,8 @@ function ArtPieceRoute({
   onToggleFavorite,
   getComments,
   onAddComment,
+  onEditComment,
+  onDeleteComment,
 }: ArtPieceRouteProps) {
   const { slug } = useParams();
   const piece = pieces.find((candidate) => candidate.slug === slug);
@@ -42,6 +46,8 @@ function ArtPieceRoute({
       onToggleFavorite={() => onToggleFavorite(piece.slug)}
       comments={getComments(piece.slug)}
       onAddComment={(text) => onAddComment(piece.slug, text)}
+      onEditComment={(date, text) => onEditComment(piece.slug, date, text)}
+      onDeleteComment={(date) => onDeleteComment(piece.slug, date)}
     />
   );
 }
@@ -99,6 +105,31 @@ export default function App() {
     );
   }
 
+  function updateComments(
+    slug: string,
+    update: (comments: ArtPieceComment[]) => ArtPieceComment[]
+  ) {
+    setArtPiecesInfo((current) =>
+      current.map((info) =>
+        info.slug === slug ? { ...info, comments: update(info.comments) } : info
+      )
+    );
+  }
+
+  function editComment(slug: string, date: string, text: string) {
+    updateComments(slug, (comments) =>
+      comments.map((comment) =>
+        comment.date === date ? { ...comment, text } : comment
+      )
+    );
+  }
+
+  function deleteComment(slug: string, date: string) {
+    updateComments(slug, (comments) =>
+      comments.filter((comment) => comment.date !== date)
+    );
+  }
+
   function renderWithPieces(render: (pieces: ArtPiece[]) => ReactNode) {
     if (error) return <p>Failed to load art pieces.</p>;
     if (!data) return <p>Loading...</p>;
@@ -139,6 +170,8 @@ export default function App() {
                 onToggleFavorite={toggleFavorite}
                 getComments={getComments}
                 onAddComment={addComment}
+                onEditComment={editComment}
+                onDeleteComment={deleteComment}
               />
             ))}
           />

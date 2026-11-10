@@ -767,3 +767,74 @@ test("shows the colors on /art-pieces/:slug", async () => {
     expect(screen.getByText(color)).toBeInTheDocument();
   });
 });
+
+test("edits a comment and saves it to localStorage", async () => {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([
+      {
+        slug: "wheat-field",
+        isFavorite: false,
+        comments: [{ text: "Golden light", date: "2026-01-01T00:00:00.000Z" }],
+      },
+    ])
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  await userEvent.click(await screen.findByRole("button", { name: "Edit" }));
+  const field = screen.getByLabelText("Edit comment");
+  await userEvent.clear(field);
+  await userEvent.type(field, "Warm light");
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+  expect(screen.getByText("Warm light")).toBeInTheDocument();
+  expect(screen.queryByText("Golden light")).not.toBeInTheDocument();
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+  expect(stored[0].comments).toEqual([
+    { text: "Warm light", date: "2026-01-01T00:00:00.000Z" },
+  ]);
+});
+
+test("deletes a comment and removes it from localStorage", async () => {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([
+      {
+        slug: "wheat-field",
+        isFavorite: false,
+        comments: [
+          { text: "Golden light", date: "2026-01-01T00:00:00.000Z" },
+          { text: "Nice sky", date: "2026-01-02T00:00:00.000Z" },
+        ],
+      },
+      {
+        slug: "orange-red-and-green",
+        isFavorite: false,
+        comments: [{ text: "Golden light", date: "2026-01-01T00:00:00.000Z" }],
+      },
+    ])
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces/wheat-field");
+
+  const [firstDelete] = await screen.findAllByRole("button", {
+    name: "Delete",
+  });
+  await userEvent.click(firstDelete);
+  await userEvent.click(screen.getByRole("button", { name: "Confirm delete" }));
+
+  expect(screen.queryByText("Golden light")).not.toBeInTheDocument();
+  expect(screen.getByText("Nice sky")).toBeInTheDocument();
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+  expect(stored[0].comments).toEqual([
+    { text: "Nice sky", date: "2026-01-02T00:00:00.000Z" },
+  ]);
+  expect(stored[1].comments).toHaveLength(1);
+});

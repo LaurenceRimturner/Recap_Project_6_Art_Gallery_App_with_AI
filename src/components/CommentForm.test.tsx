@@ -40,3 +40,12 @@ test("does not submit a whitespace-only comment", async () => {
 
   expect(onAddComment).not.toHaveBeenCalled();
 });
+
+test("has a visible label and placeholder on the field", () => {
+  render(<CommentForm onAddComment={() => {}} />);
+
+  const field = screen.getByLabelText("Add a comment");
+
+  expect(field).toBe(screen.getByRole("textbox"));
+  expect(field).toHaveAttribute("placeholder");
+});
