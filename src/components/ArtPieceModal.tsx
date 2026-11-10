@@ -28,8 +28,10 @@ const fields: { key: keyof ArtPieceValues; label: string }[] = [
   { key: "year", label: "Year" },
 ];
 
+type Errors = Partial<Record<keyof ArtPieceValues, string>>;
+
 function validate(values: ArtPieceValues) {
-  const errors: Partial<Record<keyof ArtPieceValues, string>> = {};
+  const errors: Errors = {};
   for (const { key, label } of fields) {
     if (!values[key]) errors[key] = `${label} is required.`;
   }
@@ -66,9 +68,7 @@ export default function ArtPieceModal({
     genre: piece?.genre ?? "",
     year: piece?.year ?? "",
   });
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof ArtPieceValues, string>>
-  >({});
+  const [errors, setErrors] = useState<Errors>({});
 
   // open as a modal; on unmount give focus back to what opened it
   useEffect(() => {
@@ -81,35 +81,28 @@ export default function ArtPieceModal({
     };
   }, []);
 
-  function focusField(key: keyof ArtPieceValues) {
-    document.getElementById(`art-piece-${key}`)?.focus();
-  }
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isChecking) return;
     const trimmed = Object.fromEntries(
       fields.map(({ key }) => [key, values[key].trim()])
     ) as ArtPieceValues;
-    const found = validate(trimmed);
-    setErrors(found);
-    const firstInvalid = fields.find(({ key }) => found[key]);
-    if (firstInvalid) {
-      focusField(firstInvalid.key);
-      return;
-    }
+    let found = validate(trimmed);
 
-    // an unchanged image of an existing piece is not checked again
-    if (!piece || trimmed.imageSource !== piece.imageSource) {
+    // the image is only loaded when the text is valid and the image is new
+    const imageIsNew = trimmed.imageSource !== piece?.imageSource;
+    if (!Object.keys(found).length && imageIsNew) {
       setIsChecking(true);
       const imageError = await checkImage(trimmed.imageSource);
       if (!isOpen.current) return;
       setIsChecking(false);
-      if (imageError) {
-        setErrors({ imageSource: imageError });
-        focusField("imageSource");
-        return;
-      }
+      if (imageError) found = { imageSource: imageError };
+    }
+
+    setErrors(found);
+    const firstInvalid = fields.find(({ key }) => found[key]);
+    if (firstInvalid) {
+      document.getElementById(`art-piece-${firstInvalid.key}`)?.focus();
+      return;
     }
     onSave(trimmed);
   }
