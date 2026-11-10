@@ -1,6 +1,10 @@
 /*
-  Swiss grid system
-  - 12 columns, 1.5rem gutter, 0.5rem baseline unit
+  Swiss grid system, proportioned by the golden ratio
+  - 13 columns (a Fibonacci number), 1.5rem gutter, 0.5rem baseline unit
+  - content / sidebar split is 8 : 5, the Fibonacci step closest to phi
+  - type scale multiplies by phi: 1, 1.618, 2.618, 4.236rem
+  - spacing uses Fibonacci multiples of the unit: 1, 2, 3, 5, 8, 13
+  - gallery images are 4 : 5 portraits, 2 / 1 across
   - one typeface, two weights, flush-left / ragged-right
   - ink on paper, one accent
 */
@@ -12,12 +16,23 @@
   --rule: color-mix(in srgb, var(--ink) 20%, var(--paper));
   --accent: rgb(214, 51, 108);
 
+  --phi: 1.618;
+  --columns: 13;
+
+  --step-0: 1rem;
+  --step-1: 1.618rem;
+  --step-2: 2.618rem;
+  --step-3: 4.236rem;
+
   --unit: 0.5rem;
   --gutter: 1.5rem;
   --margin: clamp(1rem, 4vw, 3rem);
   --nav-width: 10rem;
 
   --font: "Inter", system-ui, sans-serif;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 0.3s;
 }
 
 *,
@@ -30,7 +45,7 @@ body {
   margin: 0;
   font-family: var(--font);
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: var(--phi);
   color: var(--ink);
   background: var(--paper);
   -webkit-font-smoothing: antialiased;
@@ -50,7 +65,7 @@ a {
 
 main {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
   column-gap: var(--gutter);
   align-content: start;
   max-width: 80rem;
@@ -76,7 +91,7 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(2rem, 4vw + 1rem, 4rem);
+  font-size: clamp(var(--step-2), 4vw + 1rem, var(--step-3));
   line-height: 1.05;
 }
 
@@ -84,7 +99,7 @@ h2 {
   grid-column: 1 / span 8;
   padding-top: var(--unit);
   border-top: 2px solid var(--ink);
-  font-size: clamp(1.5rem, 3vw + 0.5rem, 3rem);
+  font-size: clamp(var(--step-1), 3vw + 0.5rem, var(--step-2));
   line-height: 1.1;
 }
 
@@ -126,7 +141,6 @@ nav a {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition: color 0.2s ease;
 }
 
 nav a:hover {
@@ -174,13 +188,13 @@ nav a.active {
   }
 }
 
-/* ---------- Gallery: 12-col grid, 2 / 1 across ---------- */
+/* ---------- Gallery: 2 / 1 across, Fibonacci spacing ---------- */
 
 .art-list {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: calc(var(--unit) * 10) calc(var(--unit) * 6);
-  margin: calc(var(--unit) * 6) 0 0;
+  gap: calc(var(--unit) * 8) var(--gutter);
+  margin: calc(var(--unit) * 5) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -199,7 +213,6 @@ nav a.active {
   position: relative;
   margin: 0;
 }
-
 .art-piece figure {
   display: grid;
   gap: calc(var(--unit) * 2);
@@ -212,7 +225,7 @@ nav a.active {
   aspect-ratio: 4 / 5;
   object-fit: cover;
   background: var(--rule);
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration) var(--ease);
 }
 
 .art-piece a:hover img {
@@ -229,27 +242,32 @@ nav a.active {
   color: var(--ink);
 }
 
-/* ---------- Spotlight: image spans 8 of 12 columns ---------- */
+/* ---------- Spotlight: centered on the grid, 3 | 7 | 3 of 13 columns ---------- */
 
+/* three columns each side keep the focus piece symmetric on the grid */
 .spotlight {
-  grid-column: 1 / span 8;
-  margin-top: calc(var(--unit) * 4);
+  grid-column: 4 / span 7;
+  justify-self: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: calc(var(--unit) * 8);
 }
 
-/* full width, or full height when the piece is taller than the viewport */
+/* the image keeps its own proportions, up to the column width or 75vh */
 .spotlight img {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: auto;
   max-height: 75vh;
   aspect-ratio: auto;
   object-fit: contain;
-  object-position: left top;
   background: transparent;
 }
 
 @media (max-width: 900px) {
   .spotlight {
     grid-column: 1 / -1;
+    margin-top: calc(var(--unit) * 4);
   }
 }
 
@@ -278,6 +296,11 @@ nav a.active {
   color: var(--accent);
 }
 
+.favorite-icon {
+  display: grid;
+  place-items: center;
+}
+
 .favorite-button[aria-pressed="true"] {
   color: var(--paper);
   background: var(--accent);
@@ -288,7 +311,7 @@ nav a.active {
 .details {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
   column-gap: var(--gutter);
   row-gap: var(--unit);
   align-content: start;
@@ -329,7 +352,7 @@ nav a.active {
 }
 
 .details img {
-  grid-column: 1 / span 7;
+  grid-column: 1 / span 8;
   grid-row: 2 / span 5;
   width: 100%;
   max-height: 40rem;
@@ -434,7 +457,7 @@ nav a.active {
 .details > section:not(.color-palette) h3 {
   padding-top: var(--unit);
   border-top: 2px solid var(--ink);
-  font-size: 1.25rem;
+  font-size: var(--step-1);
   line-height: 1.2;
 }
 
@@ -481,7 +504,7 @@ input[type="text"] {
   border-bottom: 2px solid var(--ink);
   border-radius: 0;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--duration) var(--ease);
 }
 
 input[type="text"]:focus {
