@@ -13,6 +13,8 @@ type ArtPieceDetailsProps = {
   onToggleFavorite: () => void;
   comments: ArtPieceComment[];
   onAddComment: (text: string) => void;
+  onEditComment: (date: string, text: string) => void;
+  onDeleteComment: (date: string) => void;
 };
 
 export default function ArtPieceDetails({
@@ -21,6 +23,8 @@ export default function ArtPieceDetails({
   onToggleFavorite,
   comments,
   onAddComment,
+  onEditComment,
+  onDeleteComment,
 }: ArtPieceDetailsProps) {
   const article = useReveal<HTMLElement>(".details > :not(.favorite-button)");
 
@@ -34,8 +38,13 @@ export default function ArtPieceDetails({
       <p>Year: {piece.year}</p>
       <p>Genre: {piece.genre}</p>
       <ColorPalette colors={piece.colors} />
-      <Comments comments={comments} />
-      <CommentForm onAddComment={onAddComment} />
+      <Comments
+        comments={comments}
+        onEditComment={onEditComment}
+        onDeleteComment={onDeleteComment}
+      >
+        <CommentForm onAddComment={onAddComment} />
+      </Comments>
     </article>
   );
 }

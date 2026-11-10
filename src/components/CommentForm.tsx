@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useId, useState } from "react";
 
 type CommentFormProps = {
   onAddComment: (text: string) => void;
@@ -6,6 +6,7 @@ type CommentFormProps = {
 
 export default function CommentForm({ onAddComment }: CommentFormProps) {
   const [text, setText] = useState("");
+  const inputId = useId();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -17,9 +18,11 @@ export default function CommentForm({ onAddComment }: CommentFormProps) {
 
   return (
     <form className="comment-form" onSubmit={handleSubmit}>
+      <label htmlFor={inputId}>Add a comment</label>
       <input
+        id={inputId}
         type="text"
-        aria-label="Comment"
+        placeholder="Write your comment here"
         value={text}
         onChange={(event) => setText(event.target.value)}
         required
