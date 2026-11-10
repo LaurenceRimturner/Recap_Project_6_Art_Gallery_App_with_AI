@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 
 import type { ArtPiece, ArtPieceComment } from "../types";
+import useReveal from "../useReveal";
 import ColorPalette from "./ColorPalette";
 import CommentForm from "./CommentForm";
 import Comments from "./Comments";
@@ -21,8 +22,12 @@ export default function ArtPieceDetails({
   comments,
   onAddComment,
 }: ArtPieceDetailsProps) {
+  const article = useReveal<HTMLElement>(
+    ".details > :not(.favorite-button)",
+  );
+
   return (
-    <article className="details">
+    <article className="details" ref={article}>
       <Link to="/art-pieces">Back</Link>
       <img src={piece.imageSource} alt={piece.name} />
       <FavoriteButton isFavorite={isFavorite} onToggle={onToggleFavorite} />
