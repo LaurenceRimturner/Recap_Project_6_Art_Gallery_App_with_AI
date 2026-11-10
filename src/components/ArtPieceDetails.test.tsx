@@ -210,3 +210,32 @@ test("passes edit and delete of a comment on", async () => {
   expect(onEditComment).toHaveBeenCalledWith(date, "Lovely colors!");
   expect(onDeleteComment).toHaveBeenCalledWith(date);
 });
+
+test("does not fade in the comments of another art piece shown in the same view", () => {
+  const props = {
+    isFavorite: false,
+    onToggleFavorite: () => {},
+    onAddComment: () => {},
+    onEditComment: () => {},
+    onDeleteComment: () => {},
+  };
+  const { rerender } = render(
+    <MemoryRouter>
+      <ArtPieceDetails piece={piece} comments={[]} {...props} />
+    </MemoryRouter>
+  );
+
+  rerender(
+    <MemoryRouter>
+      <ArtPieceDetails
+        piece={{ ...piece, slug: "wheat-field", name: "Wheat Field" }}
+        comments={[{ text: "Golden light", date: "2026-01-01T00:00:00.000Z" }]}
+        {...props}
+      />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByText("Golden light").closest("li")).not.toHaveClass(
+    "fade-in"
+  );
+});
