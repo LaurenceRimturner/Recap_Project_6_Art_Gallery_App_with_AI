@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { imageStub } from "../testImage";
 import type { ArtPiece } from "../types";
 import ArtPieceModal from "./ArtPieceModal";
 
@@ -185,4 +186,74 @@ test("returns focus to the element that opened it when unmounted", () => {
   unmount();
 
   expect(opener).toHaveFocus();
+});
+
+const sizeError = "Image must be between 500 and 2000 pixels wide and tall.";
+
+async function saveWithImage(width: number, height: number) {
+  imageStub.width = width;
+  imageStub.height = height;
+  const handlers = renderModal();
+  await fillIn(validValues);
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+  return handlers;
+}
+
+test.each([
+  [499, 1000],
+  [1000, 499],
+  [2001, 1000],
+  [1000, 2001],
+])("rejects an image of %i x %i pixels", async (width, height) => {
+  const { onSave } = await saveWithImage(width, height);
+
+  expect(onSave).not.toHaveBeenCalled();
+  expect(await screen.findByText(sizeError)).toBeInTheDocument();
+  expect(screen.getByLabelText("Image URL")).toHaveFocus();
+});
+
+test.each([
+  [500, 500],
+  [2000, 2000],
+])("accepts an image of %i x %i pixels", async (width, height) => {
+  const { onSave } = await saveWithImage(width, height);
+
+  await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+});
+
+test("rejects an image that cannot be loaded", async () => {
+  imageStub.fails = true;
+  const { onSave } = renderModal();
+  await fillIn(validValues);
+
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+  expect(onSave).not.toHaveBeenCalled();
+  expect(
+    await screen.findByText("Image could not be loaded from this URL.")
+  ).toBeInTheDocument();
+});
+
+test("does not check the image again when editing without changing it", async () => {
+  imageStub.fails = true;
+  const { onSave } = renderModal({ piece });
+
+  await fillIn({ Name: "Sunset" });
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+  await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+});
+
+test("does not save when the modal is closed while the image is checked", async () => {
+  const onSave = vi.fn();
+  const { unmount } = render(
+    <ArtPieceModal piece={piece} onSave={onSave} onClose={() => {}} />
+  );
+  await fillIn({ "Image URL": "https://example.com/other.jpg" });
+
+  fireEvent.submit(screen.getByRole("dialog").querySelector("form")!);
+  unmount();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  expect(onSave).not.toHaveBeenCalled();
 });

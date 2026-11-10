@@ -1,5 +1,11 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
+import {
+  MAX_IMAGE_SIZE,
+  MIN_IMAGE_SIZE,
+  isAllowedImageSize,
+  loadImageSize,
+} from "../imageSize";
 import { isHttpUrl } from "../isHttpUrl";
 import type { ArtPiece } from "../types";
 
@@ -33,12 +39,26 @@ function validate(values: ArtPieceValues) {
   return errors;
 }
 
+/** Loads the image and returns an error message, or null when it is fine. */
+async function checkImage(url: string) {
+  try {
+    const size = await loadImageSize(url);
+    return isAllowedImageSize(size)
+      ? null
+      : `Image must be between ${MIN_IMAGE_SIZE} and ${MAX_IMAGE_SIZE} pixels wide and tall.`;
+  } catch {
+    return "Image could not be loaded from this URL.";
+  }
+}
+
 export default function ArtPieceModal({
   piece,
   onSave,
   onClose,
 }: ArtPieceModalProps) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const isOpen = useRef(true);
+  const [isChecking, setIsChecking] = useState(false);
   const [values, setValues] = useState<ArtPieceValues>({
     imageSource: piece?.imageSource ?? "",
     name: piece?.name ?? "",
@@ -53,14 +73,21 @@ export default function ArtPieceModal({
   // open as a modal; on unmount give focus back to what opened it
   useEffect(() => {
     const opener = document.activeElement;
+    isOpen.current = true;
     dialog.current?.showModal();
     return () => {
+      isOpen.current = false;
       if (opener instanceof HTMLElement) opener.focus();
     };
   }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function focusField(key: keyof ArtPieceValues) {
+    document.getElementById(`art-piece-${key}`)?.focus();
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isChecking) return;
     const trimmed = Object.fromEntries(
       fields.map(({ key }) => [key, values[key].trim()])
     ) as ArtPieceValues;
@@ -68,8 +95,21 @@ export default function ArtPieceModal({
     setErrors(found);
     const firstInvalid = fields.find(({ key }) => found[key]);
     if (firstInvalid) {
-      document.getElementById(`art-piece-${firstInvalid.key}`)?.focus();
+      focusField(firstInvalid.key);
       return;
+    }
+
+    // an unchanged image of an existing piece is not checked again
+    if (!piece || trimmed.imageSource !== piece.imageSource) {
+      setIsChecking(true);
+      const imageError = await checkImage(trimmed.imageSource);
+      if (!isOpen.current) return;
+      setIsChecking(false);
+      if (imageError) {
+        setErrors({ imageSource: imageError });
+        focusField("imageSource");
+        return;
+      }
     }
     onSave(trimmed);
   }
@@ -84,7 +124,7 @@ export default function ArtPieceModal({
         onClose();
       }}
     >
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={(event) => void handleSubmit(event)} noValidate>
         <h2 id="art-piece-modal-title">
           {piece ? "Edit art piece" : "Add art piece"}
         </h2>
@@ -114,7 +154,9 @@ export default function ArtPieceModal({
           </div>
         ))}
         <div className="modal-actions">
-          <button type="submit">Save</button>
+          <button type="submit" disabled={isChecking}>
+            Save
+          </button>
           <button type="button" onClick={onClose}>
             Close
           </button>
