@@ -83,6 +83,7 @@ export default function ArtPieceModal({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isChecking) return;
     const trimmed = Object.fromEntries(
       fields.map(({ key }) => [key, values[key].trim()])
     ) as ArtPieceValues;
@@ -91,6 +92,7 @@ export default function ArtPieceModal({
     // the image is only loaded when the text is valid and the image is new
     const imageIsNew = trimmed.imageSource !== piece?.imageSource;
     if (!Object.keys(found).length && imageIsNew) {
+      setErrors({});
       setIsChecking(true);
       const imageError = await checkImage(trimmed.imageSource);
       if (!isOpen.current) return;
