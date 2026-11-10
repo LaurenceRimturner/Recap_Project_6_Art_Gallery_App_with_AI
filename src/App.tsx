@@ -9,6 +9,7 @@ import Gallery from "./components/Gallery";
 import Navigation from "./components/Navigation";
 import Spotlight from "./components/Spotlight";
 import { fetcher } from "./fetcher";
+import { parseOwnPieces } from "./ownPieces";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/700.css";
 import "./styles.css";
@@ -88,17 +89,10 @@ function loadOwnPieces(): ArtPiece[] {
     const stored: unknown = JSON.parse(
       localStorage.getItem(OWN_PIECES_KEY) ?? "[]"
     );
-    return Array.isArray(stored) ? (stored as ArtPiece[]) : [];
+    return parseOwnPieces(stored);
   } catch {
     return [];
   }
-}
-
-function slugify(name: string) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }
 
 export default function App() {
@@ -131,7 +125,7 @@ export default function App() {
         )
       );
     } else {
-      const slug = `own-${slugify(values.name)}-${Date.now()}`;
+      const slug = `own-${crypto.randomUUID()}`;
       setOwnPieces((current) => [{ slug, ...values, colors: [] }, ...current]);
     }
     setModal(null);

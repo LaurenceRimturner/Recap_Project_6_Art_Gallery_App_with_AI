@@ -1147,3 +1147,49 @@ test("marks own pieces with an Added by you badge on every page", async () => {
   ).toBeInTheDocument();
   expect(screen.getAllByText("Added by you")).toHaveLength(1);
 });
+
+test("ignores malformed own pieces in localStorage without crashing", async () => {
+  localStorage.setItem(
+    OWN_STORAGE_KEY,
+    JSON.stringify([
+      null,
+      { name: "Broken" },
+      { ...ownPiece, slug: "own-evil", imageSource: "javascript:alert(1)" },
+      ownPiece,
+    ])
+  );
+  stubApi();
+
+  renderApp("/art-pieces");
+
+  expect(
+    await screen.findByRole("img", { name: "Sunrise" })
+  ).toBeInTheDocument();
+  expect(screen.queryByText(/Broken/)).not.toBeInTheDocument();
+  expect(screen.getAllByText("Added by you")).toHaveLength(1);
+});
+
+test("gives two pieces with the same name different slugs", async () => {
+  vi.spyOn(Date, "now").mockReturnValue(1);
+  stubApi();
+  renderApp("/art-pieces");
+  await screen.findByRole("img", { name: pieces[0].name });
+
+  await addOwnPiece();
+  await addOwnPiece();
+
+  const [first, second] = storedOwnPieces() as { slug: string }[];
+  expect(first.slug).not.toBe(second.slug);
+  vi.restoreAllMocks();
+});
+
+test("returns focus to the Add art piece button when the modal is closed", async () => {
+  stubApi();
+  renderApp("/art-pieces");
+
+  const opener = screen.getByRole("button", { name: "Add art piece" });
+  await userEvent.click(opener);
+  await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+  expect(opener).toHaveFocus();
+});

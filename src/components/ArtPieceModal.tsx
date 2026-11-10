@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
+import { isHttpUrl } from "../isHttpUrl";
 import type { ArtPiece } from "../types";
 
 export type ArtPieceValues = Pick<
@@ -20,15 +21,6 @@ const fields: { key: keyof ArtPieceValues; label: string }[] = [
   { key: "genre", label: "Genre" },
   { key: "year", label: "Year" },
 ];
-
-function isHttpUrl(value: string) {
-  try {
-    const { protocol } = new URL(value);
-    return protocol === "http:" || protocol === "https:";
-  } catch {
-    return false;
-  }
-}
 
 function validate(values: ArtPieceValues) {
   const errors: Partial<Record<keyof ArtPieceValues, string>> = {};
@@ -58,12 +50,13 @@ export default function ArtPieceModal({
     Partial<Record<keyof ArtPieceValues, string>>
   >({});
 
-  // jsdom has no showModal; fall back to a plain open dialog there
+  // open as a modal; on unmount give focus back to what opened it
   useEffect(() => {
-    const element = dialog.current;
-    if (!element || element.open) return;
-    if (typeof element.showModal === "function") element.showModal();
-    else element.setAttribute("open", "");
+    const opener = document.activeElement;
+    dialog.current?.showModal();
+    return () => {
+      if (opener instanceof HTMLElement) opener.focus();
+    };
   }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -73,7 +66,12 @@ export default function ArtPieceModal({
     ) as ArtPieceValues;
     const found = validate(trimmed);
     setErrors(found);
-    if (Object.keys(found).length === 0) onSave(trimmed);
+    const firstInvalid = fields.find(({ key }) => found[key]);
+    if (firstInvalid) {
+      document.getElementById(`art-piece-${firstInvalid.key}`)?.focus();
+      return;
+    }
+    onSave(trimmed);
   }
 
   return (
@@ -84,9 +82,6 @@ export default function ArtPieceModal({
       onCancel={(event) => {
         event.preventDefault();
         onClose();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === "Escape") onClose();
       }}
     >
       <form onSubmit={handleSubmit} noValidate>

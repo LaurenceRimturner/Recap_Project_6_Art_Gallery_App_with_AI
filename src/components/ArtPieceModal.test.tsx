@@ -118,15 +118,6 @@ test("closes with the Close button without saving", async () => {
   expect(onSave).not.toHaveBeenCalled();
 });
 
-test("closes on Escape without saving", () => {
-  const { onSave, onClose } = renderModal();
-
-  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
-
-  expect(onClose).toHaveBeenCalledTimes(1);
-  expect(onSave).not.toHaveBeenCalled();
-});
-
 test("is empty when adding and prefilled when editing", () => {
   const { unmount } = render(
     <ArtPieceModal onSave={() => {}} onClose={() => {}} />
@@ -157,4 +148,41 @@ test("applies the same validation when editing", async () => {
 
   expect(onSave).not.toHaveBeenCalled();
   expect(screen.getByText("Artist is required.")).toBeInTheDocument();
+});
+
+test("closes on the native cancel event without saving", () => {
+  const { onSave, onClose } = renderModal();
+
+  fireEvent(
+    screen.getByRole("dialog"),
+    new Event("cancel", { cancelable: true })
+  );
+
+  expect(onClose).toHaveBeenCalledTimes(1);
+  expect(onSave).not.toHaveBeenCalled();
+});
+
+test("moves focus to the first invalid field after a failed save", async () => {
+  renderModal();
+
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+  expect(screen.getByLabelText("Image URL")).toHaveFocus();
+
+  await fillIn({ ...validValues, Artist: "" });
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+  expect(screen.getByLabelText("Artist")).toHaveFocus();
+});
+
+test("returns focus to the element that opened it when unmounted", () => {
+  render(<button>Opener</button>);
+  const opener = screen.getByRole("button", { name: "Opener" });
+  opener.focus();
+
+  const { unmount } = render(
+    <ArtPieceModal onSave={() => {}} onClose={() => {}} />
+  );
+  screen.getByLabelText("Name").focus();
+  unmount();
+
+  expect(opener).toHaveFocus();
 });
