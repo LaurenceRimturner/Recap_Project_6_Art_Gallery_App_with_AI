@@ -11,22 +11,15 @@ test.each([
   expect(colorFamily(hex)).toBe(family);
 });
 
-test.each(["#D9C9A8", "#C2B280"])(
-  "maps the muted beige color %s to neutral",
-  (hex) => {
-    expect(colorFamily(hex)).toBe("neutral");
-  }
-);
-
-test.each(["#FF7F00", "#FFB300", "#E8C547"])(
-  "keeps the saturated orange or yellow %s out of neutral",
+test.each(["#D9C9A8", "#C2B280", "#FF7F00", "#FFB300", "#E8C547"])(
+  "maps the beige, orange or yellow color %s to yellow",
   (hex) => {
     expect(colorFamily(hex)).toBe("yellow");
   }
 );
 
 test.each(["#000000", "#FFFFFF", "#808080", "#F5F5F2"])(
-  "maps the low-saturation color %s to grey, not neutral",
+  "maps the low-saturation color %s to grey",
   (hex) => {
     expect(colorFamily(hex)).toBe("grey");
   }

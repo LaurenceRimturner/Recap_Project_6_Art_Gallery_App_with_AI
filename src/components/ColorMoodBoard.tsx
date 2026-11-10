@@ -6,8 +6,9 @@ type ColorMoodBoardProps = {
   onToggle: (family: ColorFamily) => void;
 };
 
-const FAMILY_ORDER: ColorFamily[] = [
-  "neutral",
+// The order of the chips. Grey has no chip.
+const FAMILIES: ColorFamily[] = [
+  "red",
   "yellow",
   "green",
   "blue",
@@ -15,43 +16,36 @@ const FAMILY_ORDER: ColorFamily[] = [
   "pink",
 ];
 
-const MAX_SWATCHES = 6;
-
 export default function ColorMoodBoard({
   colors,
   selected,
   onToggle,
 }: ColorMoodBoardProps) {
-  const distinctColors = [...new Set(colors)];
+  // For every family, find one example color from the gallery.
+  // No example means the family is not in the gallery, so it gets no chip.
+  const chips = [];
+  for (const family of FAMILIES) {
+    const example = colors.find((color) => colorFamily(color) === family);
+    if (example) chips.push({ family, example });
+  }
 
   return (
     <div className="mood-board" role="group" aria-label="Colors">
-      {FAMILY_ORDER.map((family) => ({
-        family,
-        swatches: distinctColors.filter(
-          (color) => colorFamily(color) === family
-        ),
-      }))
-        .filter(({ swatches }) => swatches.length > 0)
-        .map(({ family, swatches }) => (
-          <button
-            key={family}
-            type="button"
-            aria-pressed={selected === family}
-            onClick={() => onToggle(family)}
-          >
-            <span className="mood-swatches" aria-hidden="true">
-              {swatches.slice(0, MAX_SWATCHES).map((color) => (
-                <span
-                  key={color}
-                  className="swatch"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </span>
-            {family}
-          </button>
-        ))}
+      {chips.map(({ family, example }) => (
+        <button
+          key={family}
+          type="button"
+          aria-pressed={selected === family}
+          onClick={() => onToggle(family)}
+        >
+          <span
+            className="dot"
+            aria-hidden="true"
+            style={{ backgroundColor: example }}
+          />
+          {family}
+        </button>
+      ))}
     </div>
   );
 }
