@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { SWRConfig } from "swr";
@@ -173,6 +179,71 @@ test("shows the gallery after clicking Gallery", async () => {
   await userEvent.click(screen.getByRole("link", { name: "Gallery" }));
 
   expect(await screen.findByRole("list")).toBeInTheDocument();
+});
+
+test("shows the filters on /art-pieces", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/art-pieces");
+
+  expect(
+    await screen.findByLabelText("Search by name or artist")
+  ).toBeInTheDocument();
+  expect(screen.getByLabelText("Genre")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Clear filters" })
+  ).toBeInTheDocument();
+});
+
+test.each(["/", "/favorites"])("shows no filters on %s", async (route) => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp(route);
+
+  await waitFor(() =>
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+  );
+  expect(
+    screen.queryByLabelText("Search by name or artist")
+  ).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Genre")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Clear filters" })
+  ).not.toBeInTheDocument();
+});
+
+test("resets the filters after leaving the gallery and coming back", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  await userEvent.type(
+    await screen.findByLabelText("Search by name or artist"),
+    "wheat"
+  );
+  expect(
+    screen.queryByRole("img", { name: pieces[0].name })
+  ).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("link", { name: "Spotlight" }));
+  await screen.findByRole("img", { name: /./ });
+  await userEvent.click(screen.getByRole("link", { name: "Gallery" }));
+
+  expect(await screen.findByLabelText("Search by name or artist")).toHaveValue(
+    ""
+  );
+  for (const piece of pieces) {
+    expect(
+      await screen.findByRole("img", { name: piece.name })
+    ).toBeInTheDocument();
+  }
 });
 
 test("shows Page not found on unknown URLs", async () => {
@@ -488,9 +559,10 @@ test("lists the newest comment first", async () => {
   renderApp("/art-pieces/wheat-field");
 
   const field = await screen.findByRole("textbox");
-  await userEvent.type(field, "Older comment");
+  fireEvent.change(field, { target: { value: "Older comment" } });
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
-  await userEvent.type(field, "Newer comment");
+  await waitFor(() => expect(field).toHaveValue(""));
+  fireEvent.change(field, { target: { value: "Newer comment" } });
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
 
   const commentsSection = screen

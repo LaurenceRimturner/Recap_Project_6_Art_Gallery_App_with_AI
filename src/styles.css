@@ -536,6 +536,110 @@ button {
   background: transparent;
 }
 
+/* ---------- Gallery filters ---------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--unit) * 2) var(--gutter);
+  align-items: end;
+  margin-bottom: calc(var(--unit) * 4);
+}
+
+.filters > label {
+  display: grid;
+  gap: var(--unit);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.filter-search {
+  flex: 1 1 12rem;
+}
+
+.filter-genre {
+  flex: 0 1 12rem;
+}
+
+.filters input[type="search"],
+.filters select {
+  width: 100%;
+  padding: var(--unit) 0;
+  font: inherit;
+  font-weight: 400;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: normal;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0;
+  outline: none;
+}
+
+.filters input[type="search"]:focus-visible,
+.filters select:focus-visible {
+  border-bottom-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.mood-board {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: var(--unit);
+}
+
+.mood-board button,
+.filters > button {
+  display: inline-flex;
+  gap: var(--unit);
+  align-items: center;
+  padding: var(--unit) calc(var(--unit) * 2);
+  font-size: 0.875em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+}
+
+.mood-board button[aria-pressed="true"],
+.filters > button:not(:disabled):hover {
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.filters > button {
+  justify-content: center;
+}
+
+.filters > button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  border-color: var(--rule);
+}
+
+.mood-board button:focus-visible,
+.filters > button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.mood-swatches {
+  display: flex;
+}
+
+.mood-swatches .swatch {
+  width: calc(var(--unit) * 2);
+  height: calc(var(--unit) * 2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
