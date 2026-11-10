@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { SWRConfig } from "swr";
@@ -488,9 +494,10 @@ test("lists the newest comment first", async () => {
   renderApp("/art-pieces/wheat-field");
 
   const field = await screen.findByRole("textbox");
-  await userEvent.type(field, "Older comment");
+  fireEvent.change(field, { target: { value: "Older comment" } });
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
-  await userEvent.type(field, "Newer comment");
+  await waitFor(() => expect(field).toHaveValue(""));
+  fireEvent.change(field, { target: { value: "Newer comment" } });
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
 
   const commentsSection = screen
