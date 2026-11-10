@@ -6,9 +6,16 @@ const links = [
   { to: "/favorites", label: "Favorites", end: false },
 ];
 
-export default function Navigation() {
+type NavigationProps = {
+  onAddClick?: () => void;
+};
+
+export default function Navigation({ onAddClick }: NavigationProps) {
   return (
     <nav>
+      <button type="button" className="nav-add" onClick={onAddClick}>
+        Add art piece
+      </button>
       {links.map(({ to, label, end }) => (
         <NavLink key={to} to={to} end={end}>
           {label}

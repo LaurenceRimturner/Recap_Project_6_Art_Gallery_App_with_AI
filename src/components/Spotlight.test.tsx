@@ -262,3 +262,26 @@ test("toggles the favorite with the slug of the piece", async () => {
   expect(onToggleFavorite).toHaveBeenCalledTimes(1);
   expect(onToggleFavorite).toHaveBeenCalledWith(pieces[0].slug);
 });
+
+test("shows an Added by you badge only for custom pieces", () => {
+  const { unmount } = render(
+    <Spotlight
+      pieces={[{ ...pieces[0], isCustom: true }]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+  expect(screen.getByText("Added by you")).toBeInTheDocument();
+  unmount();
+
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+  expect(screen.queryByText("Added by you")).not.toBeInTheDocument();
+});

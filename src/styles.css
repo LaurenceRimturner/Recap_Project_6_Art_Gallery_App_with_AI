@@ -134,7 +134,8 @@ nav {
   border-left: 1px solid var(--ink);
 }
 
-nav a {
+nav a,
+nav button {
   padding: var(--unit) 0;
   border-top: 1px solid var(--ink);
   font-size: 0.875rem;
@@ -145,6 +146,26 @@ nav a {
 
 nav a:hover {
   color: var(--accent);
+}
+
+/* the add button sits at the top of the rail, apart from the page links */
+nav .nav-add {
+  margin-bottom: auto;
+  padding: var(--unit) calc(var(--unit) * 2);
+  color: var(--paper);
+  text-align: center;
+  cursor: pointer;
+  background: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+nav .nav-add:hover {
+  color: var(--ink);
+  background: transparent;
 }
 
 nav a.active {
@@ -180,6 +201,11 @@ nav a.active {
   nav a.active {
     padding: var(--unit) 0;
     border-top: 0;
+  }
+
+  nav .nav-add {
+    margin: 0 auto 0 0;
+    padding: var(--unit) calc(var(--unit) * 2);
   }
 
   nav a.active {
@@ -271,6 +297,37 @@ nav a.active {
   }
 }
 
+/* ---------- Badge for custom art pieces ---------- */
+
+.badge {
+  display: inline-block;
+  justify-self: start;
+  padding: calc(var(--unit) / 4) var(--unit);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--accent);
+}
+
+/* over the image corner, opposite the favorite button */
+.art-piece > .badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.details > .badge {
+  grid-column: 9 / -1;
+}
+
+@media (max-width: 900px) {
+  .details > .badge {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ---------- Favorite button ---------- */
 
 .favorite-button {
@@ -315,6 +372,8 @@ nav a.active {
   column-gap: var(--gutter);
   row-gap: var(--unit);
   align-content: start;
+  /* the last row absorbs the image height, so the info rows stay compact */
+  grid-template-rows: auto repeat(7, min-content) 1fr;
 }
 
 /* back link, styled as a button with a 44px minimum hit area */
@@ -353,11 +412,12 @@ nav a.active {
 
 .details img {
   grid-column: 1 / span 8;
-  grid-row: 2 / span 5;
-  width: 100%;
+  grid-row: 2 / span 8;
+  align-self: start;
+  width: auto;
+  max-width: 100%;
+  height: auto;
   max-height: 40rem;
-  object-fit: contain;
-  object-position: top left;
 }
 
 .details .favorite-button {
@@ -390,6 +450,10 @@ nav a.active {
   .details .color-palette {
     grid-column: 1 / -1;
     grid-row: auto;
+  }
+
+  .details {
+    grid-template-rows: none;
   }
 
   .details h2 {
@@ -581,13 +645,21 @@ button {
   gap: var(--unit);
 }
 
-.comment-actions {
+.comment-actions,
+.piece-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--unit);
 }
 
-.comment-actions button {
+.piece-actions {
+  margin-top: calc(var(--unit) * 2);
+}
+
+.comment-actions button,
+.piece-actions button {
   padding: calc(var(--unit) / 2) calc(var(--unit) * 2);
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -601,9 +673,22 @@ button {
     color 0.2s ease;
 }
 
-.comment-actions button:hover {
+.comment-actions button:hover,
+.piece-actions button:hover {
   color: var(--paper);
   background: var(--ink);
+}
+
+.comment-actions button.danger,
+.piece-actions button.danger {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.comment-actions button.danger:hover,
+.piece-actions button.danger:hover {
+  color: var(--paper);
+  background: var(--accent);
 }
 
 .comments li.fade-in {
@@ -619,6 +704,101 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .comments li.fade-in {
     animation: none;
+  }
+}
+
+/* ---------- Add / edit art piece modal ---------- */
+
+.art-piece-modal {
+  width: min(32rem, calc(100vw - var(--margin) * 2));
+  max-height: calc(100vh - var(--margin) * 2);
+  overflow-y: auto;
+  padding: calc(var(--unit) * 3);
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+}
+
+.art-piece-modal::backdrop {
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.art-piece-modal form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--unit) * 2);
+}
+
+/* the global h2 spans 8 columns of the page grid; here it is a plain title */
+.art-piece-modal h2 {
+  grid-column: auto;
+  margin-bottom: var(--unit);
+}
+
+.modal-field {
+  display: grid;
+  gap: calc(var(--unit) / 2);
+}
+
+.modal-field label {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.art-piece-modal input[type="text"] {
+  padding: calc(var(--unit) * 1.5);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+}
+
+.art-piece-modal input[aria-invalid="true"] {
+  border-color: var(--accent);
+}
+
+.modal-field [role="alert"] {
+  color: var(--accent);
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--unit);
+}
+
+.modal-actions button {
+  padding: var(--unit) calc(var(--unit) * 3);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.modal-actions button[type="submit"] {
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.modal-actions button:hover {
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.details > .piece-actions {
+  grid-column: 9 / -1;
+}
+
+@media (max-width: 900px) {
+  .details > .piece-actions {
+    grid-column: 1 / -1;
   }
 }
 
@@ -642,6 +822,20 @@ button {
 
 .filter-search {
   flex: 1 1 12rem;
+}
+
+.filters > .filter-custom {
+  display: flex;
+  gap: var(--unit);
+  align-items: center;
+  cursor: pointer;
+}
+
+.filter-custom input {
+  width: calc(var(--unit) * 2.5);
+  height: calc(var(--unit) * 2.5);
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .filter-genre {

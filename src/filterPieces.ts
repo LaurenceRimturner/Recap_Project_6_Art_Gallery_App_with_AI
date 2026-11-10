@@ -5,11 +5,12 @@ export type Filters = {
   search: string;
   family: ColorFamily | null;
   genre: string;
+  onlyCustom?: boolean;
 };
 
 export function filterPieces(
   pieces: ArtPiece[],
-  { search, family, genre }: Filters
+  { search, family, genre, onlyCustom = false }: Filters
 ) {
   const query = search.trim().toLowerCase();
   return pieces.filter(
@@ -18,6 +19,7 @@ export function filterPieces(
         piece.artist.toLowerCase().includes(query)) &&
       (family === null ||
         piece.colors.some((color) => colorFamily(color) === family)) &&
-      (genre === "" || piece.genre === genre)
+      (genre === "" || piece.genre === genre) &&
+      (!onlyCustom || piece.isCustom === true)
   );
 }

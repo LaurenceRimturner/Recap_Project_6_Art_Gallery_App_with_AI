@@ -124,3 +124,26 @@ test("clicking the favorite button toggles without opening the details page", as
   expect(onToggleFavorite).toHaveBeenCalledTimes(1);
   expect(screen.queryByText("Details page")).not.toBeInTheDocument();
 });
+
+test("shows an Added by you badge only for custom pieces", () => {
+  const { rerender } = render(
+    <ArtPiecePreview
+      piece={{ ...piece, isCustom: true }}
+      isFavorite={false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: MemoryRouter }
+  );
+
+  expect(screen.getByText("Added by you")).toBeInTheDocument();
+
+  rerender(
+    <ArtPiecePreview
+      piece={piece}
+      isFavorite={false}
+      onToggleFavorite={() => {}}
+    />
+  );
+
+  expect(screen.queryByText("Added by you")).not.toBeInTheDocument();
+});

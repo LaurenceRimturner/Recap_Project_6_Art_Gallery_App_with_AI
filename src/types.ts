@@ -6,6 +6,7 @@ export type ArtPiece = {
   year: string;
   genre: string;
   colors: string[];
+  isCustom?: boolean;
 };
 
 export type ArtPieceComment = {

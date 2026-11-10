@@ -3,6 +3,8 @@ type ColorPaletteProps = {
 };
 
 export default function ColorPalette({ colors }: ColorPaletteProps) {
+  if (colors.length === 0) return null;
+
   return (
     <section className="color-palette">
       <h3>Colors</h3>

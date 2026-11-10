@@ -271,3 +271,70 @@ test("keeps pieces with only red or grey colors, hidden by any color group", asy
     screen.queryByRole("img", { name: "Grey Only" })
   ).not.toBeInTheDocument();
 });
+
+const customPiece: ArtPiece = {
+  slug: "own-sunrise",
+  artist: "Me",
+  name: "Sunrise",
+  imageSource: "https://example.com/sunrise.jpg",
+  year: "2024",
+  genre: "Impressionism",
+  colors: [],
+  isCustom: true,
+};
+
+test("shows no own-pieces filter when there are no custom pieces", () => {
+  renderGallery();
+
+  expect(
+    screen.queryByRole("checkbox", { name: "Only my art pieces" })
+  ).not.toBeInTheDocument();
+});
+
+test("shows only custom pieces when Only my art pieces is checked", async () => {
+  renderGallery([...pieces, customPiece]);
+
+  await userEvent.click(
+    screen.getByRole("checkbox", { name: "Only my art pieces" })
+  );
+
+  expect(screen.getByRole("img", { name: "Sunrise" })).toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: "Wheat Field" })
+  ).not.toBeInTheDocument();
+
+  await userEvent.click(
+    screen.getByRole("checkbox", { name: "Only my art pieces" })
+  );
+
+  expect(screen.getByRole("img", { name: "Wheat Field" })).toBeInTheDocument();
+});
+
+test("combines Only my art pieces with the other filters", async () => {
+  renderGallery([...pieces, customPiece]);
+
+  await userEvent.click(
+    screen.getByRole("checkbox", { name: "Only my art pieces" })
+  );
+  await userEvent.selectOptions(
+    screen.getByLabelText("Genre"),
+    "Post-Impressionism"
+  );
+
+  expect(screen.getByText("No art pieces found.")).toBeInTheDocument();
+});
+
+test("clear filters also unchecks Only my art pieces", async () => {
+  renderGallery([...pieces, customPiece]);
+  const checkbox = screen.getByRole("checkbox", { name: "Only my art pieces" });
+  const clear = screen.getByRole("button", { name: "Clear filters" });
+  expect(clear).toBeDisabled();
+
+  await userEvent.click(checkbox);
+  expect(clear).toBeEnabled();
+  await userEvent.click(clear);
+
+  expect(checkbox).not.toBeChecked();
+  expect(clear).toBeDisabled();
+  expect(screen.getByRole("img", { name: "Wheat Field" })).toBeInTheDocument();
+});
