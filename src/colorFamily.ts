@@ -1,15 +1,11 @@
 export type ColorFamily =
-  "red" | "yellow" | "green" | "blue" | "purple" | "pink" | "neutral" | "grey";
+  "red" | "yellow" | "green" | "blue" | "purple" | "pink" | "grey";
 
-const MIN_SATURATION = 0.15;
-const MIN_LIGHTNESS = 0.08;
-const MAX_LIGHTNESS = 0.95;
+// A hex color looks like "#D32F2F": a "#" and six characters.
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
-// muted orange/yellow hues are beige-ish and count as neutral
-const BEIGE_MIN_HUE = 20;
-const BEIGE_MAX_HUE = 70;
-const BEIGE_MAX_SATURATION = 0.5;
-
+// The hue is the position on the color wheel (0 to 360 degrees).
+// Every hue below the number belongs to the family next to it.
 const HUE_FAMILIES: [upTo: number, family: ColorFamily][] = [
   [20, "red"],
   [70, "yellow"],
@@ -19,47 +15,43 @@ const HUE_FAMILIES: [upTo: number, family: ColorFamily][] = [
   [345, "pink"],
 ];
 
-const HEX_COLOR = /^#[0-9a-f]{6}$/i;
-
-function hexToHsl(hex: string) {
-  const [r, g, b] = [1, 3, 5].map(
-    (start) => parseInt(hex.slice(start, start + 2), 16) / 255
-  );
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  const lightness = (max + min) / 2;
-  const saturation =
-    delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
-
-  let hue = 0;
-  if (delta !== 0) {
-    if (max === r) hue = ((g - b) / delta) % 6;
-    else if (max === g) hue = (b - r) / delta + 2;
-    else hue = (r - g) / delta + 4;
-  }
-
-  return { hue: (hue * 60 + 360) % 360, saturation, lightness };
+// Turns "#D32F2F" into the three numbers red, green and blue (0 to 1).
+function hexToRgb(hex: string) {
+  return {
+    red: parseInt(hex.slice(1, 3), 16) / 255,
+    green: parseInt(hex.slice(3, 5), 16) / 255,
+    blue: parseInt(hex.slice(5, 7), 16) / 255,
+  };
 }
 
 export function colorFamily(hex: string): ColorFamily {
+  // Step 1: anything that is not a valid hex color counts as grey.
   if (!HEX_COLOR.test(hex)) return "grey";
 
-  const { hue, saturation, lightness } = hexToHsl(hex);
-  if (
-    saturation < MIN_SATURATION ||
-    lightness < MIN_LIGHTNESS ||
-    lightness > MAX_LIGHTNESS
-  ) {
+  const { red, green, blue } = hexToRgb(hex);
+  const strongest = Math.max(red, green, blue);
+  const weakest = Math.min(red, green, blue);
+  const spread = strongest - weakest;
+
+  // Step 2: how bright and how colorful is it?
+  const lightness = (strongest + weakest) / 2;
+  const saturation =
+    spread === 0 ? 0 : spread / (1 - Math.abs(2 * lightness - 1));
+
+  // Step 3: nearly white, nearly black or washed out means grey.
+  if (saturation < 0.15 || lightness < 0.08 || lightness > 0.95) {
     return "grey";
   }
-  if (
-    hue >= BEIGE_MIN_HUE &&
-    hue < BEIGE_MAX_HUE &&
-    saturation < BEIGE_MAX_SATURATION
-  ) {
-    return "neutral";
-  }
 
-  return HUE_FAMILIES.find(([upTo]) => hue < upTo)?.[1] ?? "red";
+  // Step 4: find the position on the color wheel (the hue).
+  let hue = 0;
+  if (strongest === red) hue = ((green - blue) / spread) % 6;
+  else if (strongest === green) hue = (blue - red) / spread + 2;
+  else hue = (red - green) / spread + 4;
+  hue = (hue * 60 + 360) % 360;
+
+  // Step 5: take the first family whose hue range contains our hue.
+  // A hue of 345 or more is red again, because the wheel is a circle.
+  const match = HUE_FAMILIES.find(([upTo]) => hue < upTo);
+  return match ? match[1] : "red";
 }

@@ -911,13 +911,10 @@ button {
   outline-offset: 2px;
 }
 
-.mood-swatches {
-  display: flex;
-}
-
-.mood-swatches .swatch {
+.mood-board .dot {
   width: calc(var(--unit) * 2);
   height: calc(var(--unit) * 2);
+  border-radius: 50%;
 }
 
 @media (prefers-reduced-motion: reduce) {
