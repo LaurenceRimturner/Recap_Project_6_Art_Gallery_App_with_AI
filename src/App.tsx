@@ -4,6 +4,7 @@ import useSWR from "swr";
 
 import ArtPieceDetails from "./components/ArtPieceDetails";
 import ArtPieces from "./components/ArtPieces";
+import Gallery from "./components/Gallery";
 import Navigation from "./components/Navigation";
 import Spotlight from "./components/Spotlight";
 import { fetcher } from "./fetcher";
@@ -122,7 +123,7 @@ export default function App() {
           <Route
             path="/art-pieces"
             element={renderWithPieces((pieces) => (
-              <ArtPieces
+              <Gallery
                 pieces={pieces}
                 isFavorite={isFavorite}
                 onToggleFavorite={toggleFavorite}

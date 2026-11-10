@@ -181,6 +181,71 @@ test("shows the gallery after clicking Gallery", async () => {
   expect(await screen.findByRole("list")).toBeInTheDocument();
 });
 
+test("shows the filters on /art-pieces", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp("/art-pieces");
+
+  expect(
+    await screen.findByLabelText("Search by name or artist")
+  ).toBeInTheDocument();
+  expect(screen.getByLabelText("Genre")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Clear filters" })
+  ).toBeInTheDocument();
+});
+
+test.each(["/", "/favorites"])("shows no filters on %s", async (route) => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+
+  renderApp(route);
+
+  await waitFor(() =>
+    expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+  );
+  expect(
+    screen.queryByLabelText("Search by name or artist")
+  ).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Genre")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Clear filters" })
+  ).not.toBeInTheDocument();
+});
+
+test("resets the filters after leaving the gallery and coming back", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  await userEvent.type(
+    await screen.findByLabelText("Search by name or artist"),
+    "wheat"
+  );
+  expect(
+    screen.queryByRole("img", { name: pieces[0].name })
+  ).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("link", { name: "Spotlight" }));
+  await screen.findByRole("img", { name: /./ });
+  await userEvent.click(screen.getByRole("link", { name: "Gallery" }));
+
+  expect(await screen.findByLabelText("Search by name or artist")).toHaveValue(
+    ""
+  );
+  for (const piece of pieces) {
+    expect(
+      await screen.findByRole("img", { name: piece.name })
+    ).toBeInTheDocument();
+  }
+});
+
 test("shows Page not found on unknown URLs", async () => {
   vi.stubGlobal(
     "fetch",
