@@ -1,6 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router";
+import { Draggable } from "gsap/Draggable";
+import type { ReactNode } from "react";
+import { MemoryRouter, Route, Routes } from "react-router";
 
 import type { ArtPiece } from "../types";
 import Spotlight from "./Spotlight";
@@ -284,4 +286,198 @@ test("shows an Added by you badge only for custom pieces", () => {
     { wrapper: MemoryRouter }
   );
   expect(screen.queryByText("Added by you")).not.toBeInTheDocument();
+});
+
+function WithDetailsRoute({ children }: { children: ReactNode }) {
+  return (
+    <MemoryRouter>
+      <main>
+        <Routes>
+          <Route path="/" element={children} />
+          <Route path="/art-pieces/:slug" element={<p>Details page</p>} />
+        </Routes>
+      </main>
+    </MemoryRouter>
+  );
+}
+
+function renderDraggable(
+  props: {
+    position?: { x: number; y: number };
+    onPositionChange?: (position: { x: number; y: number }) => void;
+  } = {}
+) {
+  const create = vi
+    .spyOn(Draggable, "create")
+    .mockReturnValue([] as unknown as Draggable[]);
+  const view = render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+      {...props}
+    />,
+    { wrapper: WithDetailsRoute }
+  );
+  const vars = create.mock.calls[0]?.[1] as Draggable.Vars;
+  return { ...view, create, vars };
+}
+
+test("makes the spotlight draggable by its figure", () => {
+  const { container, create, vars } = renderDraggable();
+
+  expect(create).toHaveBeenCalledTimes(1);
+  expect(create.mock.calls[0][0]).toBe(container.querySelector(".spotlight"));
+  expect(vars.type).toBe("x,y");
+  expect(vars.trigger).toBe(screen.getByRole("figure"));
+});
+
+test("reports the position when a drag ends", () => {
+  const onPositionChange = vi.fn();
+  const { vars } = renderDraggable({ onPositionChange });
+
+  vars.onDragEnd?.call({ x: 40, y: 12 } as Draggable);
+
+  expect(onPositionChange).toHaveBeenCalledWith({ x: 40, y: 12 });
+});
+
+test("starts at the given position", () => {
+  const { container } = renderDraggable({ position: { x: 40, y: 12 } });
+
+  expect(container.querySelector(".spotlight")).toHaveStyle({
+    transform: "translate(40px, 12px)",
+  });
+});
+
+test("limits dragging to the page so the piece is not moved on load", () => {
+  const { vars } = renderDraggable();
+
+  expect(vars.bounds).toBe(document.querySelector("main"));
+});
+
+test("opens the details page on a plain click", () => {
+  renderDraggable();
+
+  fireEvent.click(screen.getByRole("link"));
+
+  expect(screen.getByText("Details page")).toBeInTheDocument();
+});
+
+test("does not open the details page after a drag", () => {
+  const { vars } = renderDraggable();
+  const link = screen.getByRole("link");
+
+  vars.onDragStart?.call({} as Draggable, new Event("pointerdown"));
+  fireEvent.click(link);
+
+  expect(screen.queryByText("Details page")).not.toBeInTheDocument();
+
+  fireEvent.click(link);
+
+  expect(screen.getByText("Details page")).toBeInTheDocument();
+});
+
+test("opens the details page on a tap after a drag that ended without a click", () => {
+  const { vars } = renderDraggable();
+
+  vars.onDragStart?.call({} as Draggable, new Event("pointerdown"));
+  vars.onPress?.call({} as Draggable, new Event("pointerdown"));
+  fireEvent.click(screen.getByRole("link"));
+
+  expect(screen.getByText("Details page")).toBeInTheDocument();
+});
+
+test("throws the piece onward and keeps the final position", () => {
+  const onPositionChange = vi.fn();
+  const { vars } = renderDraggable({ onPositionChange });
+
+  expect(vars.inertia).toBe(true);
+
+  vars.onThrowComplete?.call({ x: 80, y: 20 } as Draggable);
+
+  expect(onPositionChange).toHaveBeenCalledWith({ x: 80, y: 20 });
+});
+
+test("marks the piece while it is pressed", () => {
+  const { container, vars } = renderDraggable();
+  const piece = container.querySelector(".spotlight");
+
+  vars.onPress?.call({} as Draggable, new Event("pointerdown"));
+  expect(piece).toHaveClass("is-dragging");
+
+  vars.onRelease?.call(
+    { isThrowing: false } as Draggable,
+    new Event("pointerup")
+  );
+  expect(piece).not.toHaveClass("is-dragging");
+});
+
+test("keeps the mark while the piece is still being thrown", () => {
+  const { container, vars } = renderDraggable();
+  const piece = container.querySelector(".spotlight");
+
+  vars.onPress?.call({} as Draggable, new Event("pointerdown"));
+  vars.onRelease?.call(
+    { isThrowing: true } as Draggable,
+    new Event("pointerup")
+  );
+  expect(piece).toHaveClass("is-dragging");
+
+  vars.onThrowComplete?.call({ x: 0, y: 0 } as Draggable);
+  expect(piece).not.toHaveClass("is-dragging");
+});
+
+test("takes the glow colors from the colors of the piece", () => {
+  const { container } = renderDraggable();
+
+  const piece = container.querySelector<HTMLElement>(".spotlight");
+  expect(piece?.style.getPropertyValue("--glow-a")).toBe(pieces[0].colors[0]);
+  expect(piece?.style.getPropertyValue("--glow-b")).toBe(pieces[0].colors[1]);
+});
+
+test("uses one color for both glow layers when the piece has a single color", () => {
+  vi.spyOn(Draggable, "create").mockReturnValue([] as unknown as Draggable[]);
+  const { container } = render(
+    <Spotlight
+      pieces={[{ ...pieces[0], colors: ["#123456"] }]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: WithDetailsRoute }
+  );
+
+  const piece = container.querySelector<HTMLElement>(".spotlight");
+  expect(piece?.style.getPropertyValue("--glow-a")).toBe("#123456");
+  expect(piece?.style.getPropertyValue("--glow-b")).toBe("#123456");
+});
+
+test("sets no glow colors for a piece without colors, so the accent is used", () => {
+  vi.spyOn(Draggable, "create").mockReturnValue([] as unknown as Draggable[]);
+  const { container } = render(
+    <Spotlight
+      pieces={[{ ...pieces[0], colors: [] }]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: WithDetailsRoute }
+  );
+
+  const piece = container.querySelector<HTMLElement>(".spotlight");
+  expect(piece?.style.getPropertyValue("--glow-a")).toBe("");
+  expect(piece?.style.getPropertyValue("--glow-b")).toBe("");
+});
+
+test("works with the real Draggable and InertiaPlugin", () => {
+  render(
+    <Spotlight
+      pieces={[pieces[0]]}
+      isFavorite={() => false}
+      onToggleFavorite={() => {}}
+    />,
+    { wrapper: WithDetailsRoute }
+  );
+
+  const piece = document.querySelector<HTMLElement>(".spotlight");
+  expect(piece).not.toBeNull();
+  expect(Draggable.get(piece as HTMLElement)).toBeTruthy();
 });

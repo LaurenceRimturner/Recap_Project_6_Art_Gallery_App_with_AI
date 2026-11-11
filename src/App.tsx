@@ -1,5 +1,12 @@
-import { type ReactNode, useEffect, useState } from "react";
-import { Link, Route, Routes, useNavigate, useParams } from "react-router";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  Link,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router";
 import useSWR from "swr";
 
 import ArtPieceDetails from "./components/ArtPieceDetails";
@@ -7,6 +14,7 @@ import ArtPieceModal, { type ArtPieceValues } from "./components/ArtPieceModal";
 import ArtPieces from "./components/ArtPieces";
 import Gallery from "./components/Gallery";
 import Navigation from "./components/Navigation";
+import PageTransition from "./components/PageTransition";
 import Spotlight from "./components/Spotlight";
 import { fetcher } from "./fetcher";
 import { parseOwnPieces } from "./ownPieces";
@@ -103,6 +111,14 @@ export default function App() {
   const [ownPieces, setOwnPieces] = useState<ArtPiece[]>(loadOwnPieces);
   // null = closed, empty object = adding, slug = editing that piece
   const [modal, setModal] = useState<{ slug?: string } | null>(null);
+  // kept here so the dragged spotlight keeps its place across page changes
+  const [spotlightPosition, setSpotlightPosition] = useState({ x: 0, y: 0 });
+  const { pathname } = useLocation();
+  const isFirstPage = useRef(true);
+
+  useEffect(() => {
+    isFirstPage.current = false;
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(artPiecesInfo));
@@ -207,56 +223,60 @@ export default function App() {
         <h1>
           <Link to="/">Art Gallery</Link>
         </h1>
-        <Routes>
-          <Route
-            path="/"
-            element={renderWithPieces((pieces) => (
-              <Spotlight
-                pieces={pieces}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-              />
-            ))}
-          />
-          <Route
-            path="/art-pieces"
-            element={renderWithPieces((pieces) => (
-              <Gallery
-                pieces={pieces}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-              />
-            ))}
-          />
-          <Route
-            path="/art-pieces/:slug"
-            element={renderWithPieces((pieces) => (
-              <ArtPieceRoute
-                pieces={pieces}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-                getComments={getComments}
-                onAddComment={addComment}
-                onEditComment={editComment}
-                onDeleteComment={deleteComment}
-                isOwnPiece={isOwnPiece}
-                onEditPiece={(slug) => setModal({ slug })}
-                onDeletePiece={deletePiece}
-              />
-            ))}
-          />
-          <Route
-            path="/favorites"
-            element={renderWithPieces((pieces) => (
-              <ArtPieces
-                pieces={pieces.filter((piece) => isFavorite(piece.slug))}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-              />
-            ))}
-          />
-          <Route path="*" element={<p>Page not found</p>} />
-        </Routes>
+        <PageTransition key={pathname} animate={!isFirstPage.current}>
+          <Routes>
+            <Route
+              path="/"
+              element={renderWithPieces((pieces) => (
+                <Spotlight
+                  pieces={pieces}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  position={spotlightPosition}
+                  onPositionChange={setSpotlightPosition}
+                />
+              ))}
+            />
+            <Route
+              path="/art-pieces"
+              element={renderWithPieces((pieces) => (
+                <Gallery
+                  pieces={pieces}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                />
+              ))}
+            />
+            <Route
+              path="/art-pieces/:slug"
+              element={renderWithPieces((pieces) => (
+                <ArtPieceRoute
+                  pieces={pieces}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  getComments={getComments}
+                  onAddComment={addComment}
+                  onEditComment={editComment}
+                  onDeleteComment={deleteComment}
+                  isOwnPiece={isOwnPiece}
+                  onEditPiece={(slug) => setModal({ slug })}
+                  onDeletePiece={deletePiece}
+                />
+              ))}
+            />
+            <Route
+              path="/favorites"
+              element={renderWithPieces((pieces) => (
+                <ArtPieces
+                  pieces={pieces.filter((piece) => isFavorite(piece.slug))}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                />
+              ))}
+            />
+            <Route path="*" element={<p>Page not found</p>} />
+          </Routes>
+        </PageTransition>
       </main>
       <Navigation onAddClick={() => setModal({})} />
       {modal && (
