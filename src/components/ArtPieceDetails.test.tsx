@@ -76,7 +76,7 @@ test("shows the color palette", () => {
 test("shows a back link", () => {
   renderDetails();
 
-  expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: "Back to gallery" })).toHaveAttribute(
     "href",
     "/art-pieces"
   );
@@ -379,4 +379,13 @@ test("shows an Added by you badge only for custom pieces", () => {
   );
 
   expect(screen.queryByText("Added by you")).not.toBeInTheDocument();
+});
+
+test("shows a Back to gallery link", () => {
+  renderDetails();
+
+  expect(screen.getByRole("link", { name: "Back to gallery" })).toHaveAttribute(
+    "href",
+    "/art-pieces"
+  );
 });

@@ -37,7 +37,7 @@ export default function ArtPieceDetails({
 
   return (
     <article className="details" ref={article}>
-      <Link to="/art-pieces">Back</Link>
+      <Link to="/art-pieces">Back to gallery</Link>
       <img src={piece.imageSource} alt={piece.name} />
       <FavoriteButton isFavorite={isFavorite} onToggle={onToggleFavorite} />
       <h2>{piece.name}</h2>
