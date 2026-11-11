@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -6,6 +7,8 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import gsap from "gsap";
+import { Draggable } from "gsap/Draggable";
 import { MemoryRouter } from "react-router";
 import { SWRConfig } from "swr";
 
@@ -1221,4 +1224,67 @@ test("links the heading to the homepage", async () => {
   expect(
     await screen.findByRole("img", { name: pieces[0].name })
   ).toBeInTheDocument();
+});
+
+test("fades the page in after the route changes", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  await screen.findByRole("list");
+
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  // a fade tween is running on the new page
+  expect(
+    gsap.getTweensOf(document.querySelector(".page")).length
+  ).toBeGreaterThan(0);
+});
+
+test("does not fade the page in on the first render", () => {
+  vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {})));
+
+  renderApp("/art-pieces");
+
+  expect(document.querySelector(".page")).not.toBeNull();
+  expect(document.querySelector<HTMLElement>(".page")?.style.opacity).toBe("");
+});
+
+test("keeps the dragged spotlight position after visiting another page", async () => {
+  const create = vi
+    .spyOn(Draggable, "create")
+    .mockReturnValue([] as unknown as Draggable[]);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => [pieces[0]] })
+  );
+  renderApp("/");
+  await screen.findByRole("img", { name: pieces[0].name });
+
+  const vars = create.mock.calls[0][1] as Draggable.Vars;
+  act(() => vars.onDragEnd?.call({ x: 40, y: 12 } as Draggable));
+  await userEvent.click(screen.getByRole("link", { name: "Gallery" }));
+  await screen.findByRole("list");
+  await userEvent.click(screen.getByRole("link", { name: "Spotlight" }));
+  await screen.findByRole("img", { name: pieces[0].name });
+
+  expect(document.querySelector(".spotlight")).toHaveStyle({
+    transform: "translate(40px, 12px)",
+  });
+});
+
+test("starts the spotlight at its original position and stores nothing", async () => {
+  vi.spyOn(Draggable, "create").mockReturnValue([] as unknown as Draggable[]);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => [pieces[0]] })
+  );
+  renderApp("/");
+  await screen.findByRole("img", { name: pieces[0].name });
+
+  expect(
+    document.querySelector<HTMLElement>(".spotlight")?.style.transform
+  ).toBe("translate(0, 0)");
+  expect(localStorage.getItem("spotlight-position")).toBeNull();
 });

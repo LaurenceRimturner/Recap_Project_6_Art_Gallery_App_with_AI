@@ -27,3 +27,31 @@ test("is pressed for a favorite", () => {
     screen.getByRole("button", { name: "Remove from favorites" })
   ).toHaveAttribute("aria-pressed", "true");
 });
+
+const heart = () => document.querySelector(".favorite-icon");
+
+test("pops the heart when it becomes a favorite", () => {
+  const { rerender } = render(
+    <FavoriteButton isFavorite={false} onToggle={() => {}} />
+  );
+
+  rerender(<FavoriteButton isFavorite onToggle={() => {}} />);
+
+  expect(heart()).toHaveStyle({ transform: "scale(0.7, 0.7)" });
+});
+
+test("does not pop the heart when unfavoriting", () => {
+  const { rerender } = render(
+    <FavoriteButton isFavorite onToggle={() => {}} />
+  );
+
+  rerender(<FavoriteButton isFavorite={false} onToggle={() => {}} />);
+
+  expect(heart()).not.toHaveStyle({ transform: "scale(0.7, 0.7)" });
+});
+
+test("does not pop the heart on first render", () => {
+  render(<FavoriteButton isFavorite onToggle={() => {}} />);
+
+  expect(heart()).not.toHaveStyle({ transform: "scale(0.7, 0.7)" });
+});

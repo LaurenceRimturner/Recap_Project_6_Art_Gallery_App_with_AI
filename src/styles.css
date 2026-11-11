@@ -89,6 +89,18 @@ main > * {
   grid-column: 1 / -1;
 }
 
+/* the page wrapper joins the main grid so the routes keep their grid placement */
+.page {
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
+/* like main > *: a route renders its parts as full-width rows unless they place themselves;
+   :where keeps the specificity at 0 so h2, .spotlight and the others still win */
+:where(.page > *) {
+  grid-column: 1 / -1;
+}
+
 /* ---------- Type ---------- */
 
 h1,
@@ -328,6 +340,41 @@ nav a.active {
   width: fit-content;
   max-width: 100%;
   margin-top: calc(var(--unit) * 8);
+}
+
+/* the piece can be dragged by its figure */
+.spotlight figure {
+  cursor: grab;
+}
+
+.spotlight figure:active {
+  cursor: grabbing;
+}
+
+/* a soft glow behind the image on hover and while it is dragged, in the colors of the piece */
+.spotlight {
+  --glow-shadow:
+    0 0 calc(var(--unit) * 7) calc(var(--unit) * 1.5)
+      color-mix(in srgb, var(--glow-a, var(--accent)) 55%, transparent),
+    0 0 calc(var(--unit) * 3) 0
+      color-mix(in srgb, var(--glow-b, var(--accent)) 60%, transparent);
+}
+
+.spotlight img {
+  transition:
+    opacity var(--duration) var(--ease),
+    box-shadow var(--duration) var(--ease);
+}
+
+.spotlight.is-dragging img {
+  box-shadow: var(--glow-shadow);
+}
+
+/* hover only where a pointer can hover, so touch screens do not keep the glow after a tap */
+@media (hover: hover) {
+  .spotlight figure:hover img {
+    box-shadow: var(--glow-shadow);
+  }
 }
 
 /* the image keeps its own proportions, up to the column width or 75vh */
