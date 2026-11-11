@@ -13,15 +13,14 @@ export default function FavoriteButton({
   onToggle,
 }: FavoriteButtonProps) {
   const icon = useRef<HTMLSpanElement>(null);
-  const mounted = useRef(false);
+  const wasFavorite = useRef(isFavorite);
 
-  // a small spring on the heart when it is switched, not on first render
+  // a small spring on the heart when it becomes a favorite, not on first render or when unfavoriting
   useGSAP(
     () => {
-      if (!mounted.current) {
-        mounted.current = true;
-        return;
-      }
+      const becameFavorite = isFavorite && !wasFavorite.current;
+      wasFavorite.current = isFavorite;
+      if (!becameFavorite) return;
       gsap.fromTo(
         icon.current,
         { scale: 0.7 },
