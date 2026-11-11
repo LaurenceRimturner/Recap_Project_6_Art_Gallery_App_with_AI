@@ -1288,3 +1288,51 @@ test("starts the spotlight at its original position and stores nothing", async (
   ).toBe("translate(0, 0)");
   expect(localStorage.getItem("spotlight-position")).toBeNull();
 });
+
+test("shows a message with a link to the gallery when there are no favorites", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/favorites");
+
+  expect(await screen.findByText("No favorites yet")).toBeInTheDocument();
+  expect(screen.getByText("ಥ_ಥ")).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "Browse the gallery" })
+  ).toHaveAttribute("href", "/art-pieces");
+});
+
+test("shows no empty message on /favorites when there are favorites", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/art-pieces");
+  const [button] = await screen.findAllByRole("button", {
+    name: "Add to favorites",
+  });
+  await userEvent.click(button);
+
+  await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
+
+  expect(
+    await screen.findByRole("button", { name: "Remove from favorites" })
+  ).toBeInTheDocument();
+  expect(screen.queryByText("No favorites yet")).not.toBeInTheDocument();
+});
+
+test("goes to the gallery from the empty favorites message", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => pieces })
+  );
+  renderApp("/favorites");
+
+  await userEvent.click(
+    await screen.findByRole("link", { name: "Browse the gallery" })
+  );
+
+  expect(await screen.findByRole("list")).toBeInTheDocument();
+  expect(screen.queryByText("No favorites yet")).not.toBeInTheDocument();
+});

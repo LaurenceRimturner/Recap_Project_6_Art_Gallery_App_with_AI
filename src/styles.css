@@ -426,6 +426,36 @@ nav a.active {
   }
 }
 
+/* ---------- Empty favorites ---------- */
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: var(--unit);
+  margin-top: calc(var(--unit) * 8);
+  text-align: center;
+}
+
+.empty-state .empty-face {
+  font-size: var(--step-2);
+  line-height: 1;
+  color: var(--ink);
+}
+
+.empty-state a {
+  padding: var(--unit) calc(var(--unit) * 2);
+  border: 2px solid var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.empty-state a:hover {
+  color: var(--paper);
+  background: var(--ink);
+}
+
 /* ---------- Favorite button ---------- */
 
 .favorite-button {
