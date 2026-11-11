@@ -166,8 +166,10 @@ test("calls onAddComment when a comment is submitted", async () => {
     </MemoryRouter>
   );
 
-  await userEvent.type(screen.getByRole("textbox"), "Lovely colors");
-  await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+  // no delay between keystrokes, so a busy machine cannot cut the typed text short
+  const user = userEvent.setup({ delay: null });
+  await user.type(screen.getByRole("textbox"), "Lovely colors");
+  await user.click(screen.getByRole("button", { name: "Submit" }));
 
   expect(onAddComment).toHaveBeenCalledWith("Lovely colors");
 });
