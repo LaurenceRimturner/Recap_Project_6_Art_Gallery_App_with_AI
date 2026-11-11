@@ -12,9 +12,11 @@
 :root {
   --ink: rgb(22, 22, 29);
   --paper: rgb(233, 224, 224);
-  --muted: color-mix(in srgb, var(--ink) 55%, var(--paper));
+  --muted: color-mix(in srgb, var(--ink) 70%, var(--paper));
   --rule: color-mix(in srgb, var(--ink) 20%, var(--paper));
-  --accent: rgb(214, 51, 108);
+  --accent: rgb(176, 28, 82);
+  --scrim: color-mix(in srgb, var(--ink) 55%, transparent);
+  color-scheme: light;
 
   --phi: 1.618;
   --columns: 13;
@@ -33,6 +35,14 @@
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --duration: 0.3s;
+}
+
+:root[data-theme="dark"] {
+  --ink: rgb(232, 226, 226);
+  --paper: rgb(20, 20, 26);
+  --accent: rgb(244, 114, 160);
+  --scrim: rgb(0 0 0 / 0.65);
+  color-scheme: dark;
 }
 
 *,
@@ -148,9 +158,8 @@ nav a:hover {
   color: var(--accent);
 }
 
-/* the add button sits at the top of the rail, apart from the page links */
+/* the add button and theme toggle sit at the top of the rail, apart from the page links */
 nav .nav-add {
-  margin-bottom: auto;
   padding: var(--unit) calc(var(--unit) * 2);
   color: var(--paper);
   text-align: center;
@@ -166,6 +175,23 @@ nav .nav-add {
 nav .nav-add:hover {
   color: var(--ink);
   background: transparent;
+}
+
+nav .nav-toggle {
+  display: grid;
+  place-items: center;
+  margin-bottom: auto;
+  padding: var(--unit);
+  color: var(--ink);
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+}
+
+nav .nav-toggle:hover {
+  color: var(--paper);
+  background: var(--ink);
 }
 
 nav a.active {
@@ -204,8 +230,11 @@ nav a.active {
   }
 
   nav .nav-add {
-    margin: 0 auto 0 0;
     padding: var(--unit) calc(var(--unit) * 2);
+  }
+
+  nav .nav-toggle {
+    margin: 0 auto 0 0;
   }
 
   nav a.active {
@@ -721,7 +750,7 @@ button {
 }
 
 .art-piece-modal::backdrop {
-  background: color-mix(in srgb, var(--ink) 55%, transparent);
+  background: var(--scrim);
 }
 
 .art-piece-modal form {
@@ -922,5 +951,19 @@ button {
   *::before,
   *::after {
     transition: none !important;
+  }
+}
+
+/* ---------- Theme switch: colors fade only while the toggle is used ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition:
+      color var(--duration) var(--ease),
+      background-color var(--duration) var(--ease),
+      border-color var(--duration) var(--ease) !important;
   }
 }

@@ -14,6 +14,8 @@ export default defineConfig({
     setupFiles: "./src/setupTests.ts",
     // the starter has no tests yet
     passWithNoTests: true,
+    // the contrast test reads the real styles.css via ?raw
+    css: { include: [/styles.css/] },
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
