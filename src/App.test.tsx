@@ -313,7 +313,9 @@ test("goes back to the list after clicking Back", async () => {
   );
   renderApp("/art-pieces/wheat-field");
 
-  await userEvent.click(await screen.findByRole("link", { name: "Back" }));
+  await userEvent.click(
+    await screen.findByRole("link", { name: "Back to gallery" })
+  );
 
   expect(await screen.findByRole("list")).toBeInTheDocument();
 });
@@ -411,7 +413,7 @@ test("keeps the favorite status between gallery and details", async () => {
   expect(onDetails).toHaveAttribute("aria-pressed", "true");
 
   await userEvent.click(onDetails);
-  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+  await userEvent.click(screen.getByRole("link", { name: "Back to gallery" }));
 
   expect(
     await screen.findAllByRole("button", { name: "Add to favorites" })
@@ -582,7 +584,7 @@ test("shows a comment only on the art piece it was added to", async () => {
   await userEvent.type(await screen.findByRole("textbox"), "Golden light");
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
 
-  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+  await userEvent.click(screen.getByRole("link", { name: "Back to gallery" }));
   await userEvent.click(
     await screen.findByRole("link", { name: /Orange Red and Green/ })
   );
@@ -592,7 +594,7 @@ test("shows a comment only on the art piece it was added to", async () => {
   ).toBeInTheDocument();
   expect(screen.queryByText("Golden light")).not.toBeInTheDocument();
 
-  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+  await userEvent.click(screen.getByRole("link", { name: "Back to gallery" }));
   await userEvent.click(
     await screen.findByRole("link", { name: /Wheat Field/ })
   );
@@ -975,7 +977,7 @@ test("favorites and comments an added piece", async () => {
   );
   await userEvent.type(screen.getByLabelText("Add a comment"), "Warm");
   await userEvent.click(screen.getByRole("button", { name: "Submit" }));
-  await userEvent.click(screen.getByRole("link", { name: "Back" }));
+  await userEvent.click(screen.getByRole("link", { name: "Back to gallery" }));
   await userEvent.click(screen.getByRole("link", { name: "Favorites" }));
 
   expect(
@@ -1192,4 +1194,31 @@ test("returns focus to the Add art piece button when the modal is closed", async
   await userEvent.click(screen.getByRole("button", { name: "Close" }));
 
   expect(opener).toHaveFocus();
+});
+
+test("does not animate the theme on first render", () => {
+  vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {})));
+
+  renderApp("/unknown");
+
+  expect(document.documentElement).not.toHaveClass("theme-transition");
+});
+
+test("links the heading to the homepage", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => [pieces[0]] })
+  );
+  renderApp("/favorites");
+
+  const link = within(
+    screen.getByRole("heading", { name: "Art Gallery" })
+  ).getByRole("link", { name: "Art Gallery" });
+  expect(link).toHaveAttribute("href", "/");
+
+  await userEvent.click(link);
+
+  expect(
+    await screen.findByRole("img", { name: pieces[0].name })
+  ).toBeInTheDocument();
 });

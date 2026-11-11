@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { Route, Routes, useNavigate, useParams } from "react-router";
+import { Link, Route, Routes, useNavigate, useParams } from "react-router";
 import useSWR from "swr";
 
 import ArtPieceDetails from "./components/ArtPieceDetails";
@@ -204,7 +204,9 @@ export default function App() {
   return (
     <>
       <main>
-        <h1>Art Gallery</h1>
+        <h1>
+          <Link to="/">Art Gallery</Link>
+        </h1>
         <Routes>
           <Route
             path="/"
