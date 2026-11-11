@@ -243,6 +243,28 @@ nav a.active {
   }
 }
 
+/* narrow phones: add button and toggle on top, the three links in one row below */
+@media (max-width: 640px) {
+  main {
+    padding-top: calc(var(--unit) * 16);
+  }
+
+  nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--unit) calc(var(--unit) * 2);
+  }
+
+  nav .nav-add {
+    grid-column: span 2;
+  }
+
+  nav .nav-toggle {
+    justify-self: end;
+    margin: 0;
+  }
+}
+
 /* ---------- Gallery: 2 / 1 across, Fibonacci spacing ---------- */
 
 .art-list {
