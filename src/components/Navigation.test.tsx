@@ -93,3 +93,13 @@ test("calls onAddClick when the Add art piece button is clicked", async () => {
 
   expect(onAddClick).toHaveBeenCalledTimes(1);
 });
+
+test("shows a theme toggle button in the navigation", () => {
+  renderNavigation();
+
+  const nav = screen.getByRole("navigation");
+  expect(
+    within(nav).getByRole("button", { name: "Switch to dark mode" })
+  ).toBeInTheDocument();
+  expect(within(nav).getAllByRole("link")).toHaveLength(3);
+});
