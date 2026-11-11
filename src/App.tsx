@@ -266,13 +266,29 @@ export default function App() {
             />
             <Route
               path="/favorites"
-              element={renderWithPieces((pieces) => (
-                <ArtPieces
-                  pieces={pieces.filter((piece) => isFavorite(piece.slug))}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))}
+              element={renderWithPieces((pieces) => {
+                const favorites = pieces.filter((piece) =>
+                  isFavorite(piece.slug)
+                );
+                return (
+                  <>
+                    {favorites.length === 0 && (
+                      <div className="empty-state">
+                        <p className="empty-face" aria-hidden="true">
+                          ಥ_ಥ
+                        </p>
+                        <p>No favorites yet</p>
+                        <Link to="/art-pieces">Browse the gallery</Link>
+                      </div>
+                    )}
+                    <ArtPieces
+                      pieces={favorites}
+                      isFavorite={isFavorite}
+                      onToggleFavorite={toggleFavorite}
+                    />
+                  </>
+                );
+              })}
             />
             <Route path="*" element={<p>Page not found</p>} />
           </Routes>
